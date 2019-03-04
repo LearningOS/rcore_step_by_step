@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/rcore32.iml" filepath="$PROJECT_DIR$/.idea/rcore32.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/rcore_step_by_step.iml" filepath="$PROJECT_DIR$/.idea/rcore_step_by_step.iml" />
     </modules>
   </component>
 </project>

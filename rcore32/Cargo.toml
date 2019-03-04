@@ -5,7 +5,6 @@ authors = ["PanQL <panqinglin00@163.com>"]
 edition = "2018"
 
 [dependencies]
-bootloader = "0.3.14"
 
 [profile.dev]
 panic = "abort"

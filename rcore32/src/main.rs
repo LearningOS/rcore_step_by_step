@@ -1,22 +1,20 @@
 #![feature(asm)]
+#![feature(global_asm)]
 #![no_std]
 #![no_main]
 mod sbi;
 use core::panic::PanicInfo;
+use sbi::console_putchar as con_put;
+
+global_asm!(include_str!("boot/entry.asm"));
 
 static HELLO: &[u8] = b"Hello World!";
 
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-
+pub extern "C" fn rust_main() -> ! {
     for (i, &byte) in HELLO.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-        }
+        con_put(byte as usize);
     }
-
     loop {}
 }
 
