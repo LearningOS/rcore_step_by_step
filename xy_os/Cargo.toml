@@ -14,6 +14,3 @@ panic = "abort" # disable stack unwinding on panic
 
 [dependencies]
 bbl = { path = "crate/bbl" }
-
-[package.metadata.bootimage]
-default-target = "riscv_32-xy_os.json"

@@ -10,7 +10,7 @@ global_asm!(include_str!("arch/riscv32/boot/entry.asm"));
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
-}//
+}
 
 static HELLO: &[u8] = b"Hello World!";
 
