@@ -13,7 +13,7 @@ panic = "abort" # disable stack unwinding on panic
 panic = "abort" # disable stack unwinding on panic
 
 [dependencies]
-bootloader = "0.3.12"
+bbl = { path = "crate/bbl" }
 
 [package.metadata.bootimage]
-default-target = "x86_64-blog_os.json"
+default-target = "riscv_32-xy_os.json"
