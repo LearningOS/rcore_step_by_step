@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 bbl = { path = "../bbl"}
-linked_list_allocator = "0.6"
+#linked_list_allocator = "0.6"

@@ -1,14 +1,14 @@
 use bbl::sbi;
-use alloc::string::String;
+// use alloc::string::String;
 use core::fmt::{self, Write};
 
-pub fn putchar(ch: usize) {
-    sbi::console_putchar(ch);
+pub fn putchar(ch: char) {
+    sbi::console_putchar(ch as u8 as usize);
 }
 
 pub fn puts(s: &str) {
-    for &byte in s.as_bytes() {
-        putchar(byte as usize);
+    for ch in s.chars() {
+        putchar(ch);
     }
 }
 
@@ -17,6 +17,12 @@ macro_rules! print {
     ($($arg:tt)*) => ({
         $crate::io::_print(format_args!($($arg)*));
     });
+}
+
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
 pub fn _print(args: fmt::Arguments) {

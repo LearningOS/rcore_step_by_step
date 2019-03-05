@@ -9,19 +9,18 @@ use core::panic::PanicInfo;
 
 global_asm!(include_str!("arch/riscv32/boot/entry.asm"));
 
-
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    println!("{}", _info);
     loop {}
 }
 
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    let a = 111;
-    let b = "666";
-    libr::io::puts("000");
-    print!("{}2{}", a, b);
-    loop {}
+    let a = "Hello";
+    let b = "World";
+    println!("{}, {}!", a, b);
+    panic!("End of rust_main");
 }
 
 #[no_mangle]
