@@ -2,23 +2,25 @@
 #![no_main] // disable all Rust-level entry points
 #![feature(global_asm)]
 
+#[macro_use]
+extern crate libr;
+
 use core::panic::PanicInfo;
-use bbl::sbi;
 
 global_asm!(include_str!("arch/riscv32/boot/entry.asm"));
+
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-static HELLO: &[u8] = b"Hello World!";
-
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    for &c in HELLO {
-        sbi::console_putchar(c as usize);
-    }
+    let a = 111;
+    let b = "666";
+    libr::io::puts("000");
+    print!("{}2{}", a, b);
     loop {}
 }
 
