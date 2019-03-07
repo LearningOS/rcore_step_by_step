@@ -8,7 +8,7 @@ smp  ?= 4
 target := $(arch)
 kernel := target/$(target)/$(mode)/rcore32
 bin := target/$(target)/$(mode)/kernel.bin
-bbl_path := $(PWD)/../riscv-pk
+bbl_path := $(PWD)/../bbl
 
 ### export environments ###
 export ARCH = $(arch)
