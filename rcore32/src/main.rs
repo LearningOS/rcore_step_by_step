@@ -2,19 +2,17 @@
 #![feature(global_asm)]
 #![no_std]
 #![no_main]
+mod io;
 mod sbi;
 use core::panic::PanicInfo;
-use sbi::console_putchar as con_put;
+use sbi::console_putchar as cprint;
 
 global_asm!(include_str!("boot/entry.asm"));
 
-static HELLO: &[u8] = b"Hello World!";
-
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    for (i, &byte) in HELLO.iter().enumerate() {
-        con_put(byte as usize);
-    }
+    println!("Hello World");
+    //interrupt::init();
     loop {}
 }
 

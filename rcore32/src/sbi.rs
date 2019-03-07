@@ -39,15 +39,7 @@ const SBI_SET_TIMER: usize = 0;
 const SBI_CONSOLE_PUTCHAR: usize = 1;
 /// sbi: 输入字符
 const SBI_CONSOLE_GETCHAR: usize = 2;
-/// sbi: 清除处理器间中断 Inter-Processor Interrupt (IPI)
-const SBI_CLEAR_IPI: usize = 3;
-/// sbi: 发送处理器间中断 Inter-Processor Interrupt (IPI)
-const SBI_SEND_IPI: usize = 4;
-/// sbi: 用处理器间中断来通知其他处理器应该执行fence.i 指令同步指令和数据流。
-const SBI_REMOTE_FENCE_I: usize = 5;
-/// sbi: 用处理器间中断来通知其他处理器应该执行 sfence.vma（这个过程通常被称为 TLB 击落）
-const SBI_REMOTE_SFENCE_VMA: usize = 6;
-/// sbi: 用处理器间中断来通知其他处理器应该执行 sfence.vma（带有进程地址空间标识符(ASID)）
-const SBI_REMOTE_SFENCE_VMA_ASID: usize = 7;
 /// sbi: 停止机器运行
 const SBI_SHUTDOWN: usize = 8;
+const SBI_CLEAR_IPI: usize = 3;
+const SBI_SEND_IPI: usize = 4;

@@ -12,14 +12,6 @@
     <list default="true" id="feea9353-77f1-4e90-811c-83be47457ebd" name="Default Changelist" comment="">
       <change afterPath="$PROJECT_DIR$/rcore32/Makefile" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/rcore32/src/sbi.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/dictionaries/pan.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/rcore32.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcore32/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rcore32/Cargo.toml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -29,16 +21,15 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcore32/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
-              <caret line="17" selection-start-line="17" selection-end-line="17" />
+            <state relative-caret-position="609">
+              <caret line="29" selection-start-line="29" selection-end-line="29" />
               <folding>
                 <element signature="e#446#447#0" expanded="true" />
                 <element signature="e#460#461#0" expanded="true" />
                 <element signature="e#498#499#0" expanded="true" />
-                <element signature="e#521#522#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -74,19 +65,22 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcore32/Makefile">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="399">
-              <caret line="91" column="23" selection-start-line="91" selection-start-column="23" selection-end-line="91" selection-end-column="23" />
+            <state relative-caret-position="699">
+              <caret line="77" column="17" selection-start-line="77" selection-start-column="17" selection-end-line="77" selection-end-column="17" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rcore32/src/sbi.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
-              <caret line="17" selection-start-line="17" selection-end-line="17" />
+            <state relative-caret-position="737">
+              <caret line="41" selection-start-line="41" selection-end-line="41" />
               <folding>
                 <element signature="e#370#371#0" expanded="true" />
+                <element signature="e#417#418#0" expanded="true" />
+                <element signature="e#454#455#0" expanded="true" />
+                <element signature="e#499#500#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -101,10 +95,11 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/../os_course_exercises/all/01-3-lab0-spoc-discussion.md" />
-        <option value="$PROJECT_DIR$/rcore32/Makefile" />
         <option value="$PROJECT_DIR$/rcore32/Cargo.toml" />
         <option value="$PROJECT_DIR$/rcore32/riscv32-blog_os.json" />
         <option value="$PROJECT_DIR$/rcore32/src/main.rs" />
+        <option value="$PROJECT_DIR$/rcore32/Makefile" />
+        <option value="$PROJECT_DIR$/rcore32/src/sbi.rs" />
       </list>
     </option>
   </component>
@@ -183,18 +178,17 @@
       <workItem from="1551575976766" duration="991000" />
       <workItem from="1551576991799" duration="16000" />
       <workItem from="1551577748681" duration="1439000" />
-      <workItem from="1551580612044" duration="25748000" />
+      <workItem from="1551580612044" duration="27320000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="28194000" />
+    <option name="totallyTimeSpent" value="29766000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1985" y="1076" width="1855" height="1084" extended-state="6" />
-    <editor active="true" />
+    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15920398" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15920398" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -206,7 +200,7 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Database Changes" order="7" />
       <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="9" sideWeight="0.4997236" visible="true" weight="0.32810867" />
+      <window_info anchor="bottom" id="Terminal" order="9" sideWeight="0.4997236" weight="0.32810867" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5002764" side_tool="true" weight="0.32810867" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -253,13 +247,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rcore32/Makefile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="91" column="23" selection-start-line="91" selection-start-column="23" selection-end-line="91" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rcore32/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="84">
@@ -274,16 +261,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="762">
           <caret line="4307" column="43" selection-start-line="4307" selection-start-column="43" selection-end-line="4307" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rcore32/src/sbi.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="17" selection-start-line="17" selection-end-line="17" />
-          <folding>
-            <element signature="e#370#371#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -303,13 +280,32 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/rcore32/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="17" selection-start-line="17" selection-end-line="17" />
+        <state relative-caret-position="609">
+          <caret line="29" selection-start-line="29" selection-end-line="29" />
           <folding>
             <element signature="e#446#447#0" expanded="true" />
             <element signature="e#460#461#0" expanded="true" />
             <element signature="e#498#499#0" expanded="true" />
-            <element signature="e#521#522#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcore32/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="699">
+          <caret line="77" column="17" selection-start-line="77" selection-start-column="17" selection-end-line="77" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcore32/src/sbi.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="737">
+          <caret line="41" selection-start-line="41" selection-end-line="41" />
+          <folding>
+            <element signature="e#370#371#0" expanded="true" />
+            <element signature="e#417#418#0" expanded="true" />
+            <element signature="e#454#455#0" expanded="true" />
+            <element signature="e#499#500#0" expanded="true" />
           </folding>
         </state>
       </provider>

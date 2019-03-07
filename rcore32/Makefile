@@ -1,34 +1,3 @@
-#arch ?= riscv32-blog_os
-#
-#
-#target := $(arch)
-#### build args
-#build_args := --target $(target).json
-#bbl_path := $(PWD)/../riscv-pk
-#
-#.PHONY: clean build kernel
-#
-#build: $(bin)
-#
-#$(bin): kernel
-#	ls $(abspath )
-#	@mkdir -p target/$(target)/bbl && \
-#	cd target/$(target)/bbl && \
-#	$(bbl_path)/configure \
-#		--with-arch=rv32imac \
-#		--disable-fp-emulation \
-#		--host=riscv64-unknown-elf \
-#		--with-payload=$(abspath $(kernel)) && \
-#	make -j32 && \
-#	cp bbl $(abspath $@)
-#
-#kernel:
-#	@cargo xbuild $(build_args)
-#
-#clean:
-#	@cargo clean
-
-
 arch ?= riscv32-blog_os
 board ?= none
 mode ?= debug
