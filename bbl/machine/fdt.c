@@ -14,6 +14,7 @@ static inline uint32_t bswap(uint32_t x)
   return z;
 }
 
+// 查看是否符合device tree中的命名规范
 static inline int isstring(char c)
 {
   if (c >= 'A' && c <= 'Z')
@@ -28,10 +29,10 @@ static inline int isstring(char c)
 }
 
 static uint32_t *fdt_scan_helper(
-  uint32_t *lex,
-  const char *strings,
-  struct fdt_scan_node *node,
-  const struct fdt_cb *cb)
+  uint32_t *lex,  //lex 指向device tree struct
+  const char *strings,  //strings 指向device tree的strings存放位置
+  struct fdt_scan_node *node, //node为父节点，初始化设置为0
+  const struct fdt_cb *cb)  //包含了要扫描的设备对应的处理方法,比如如何初始化内存
 {
   struct fdt_scan_node child;
   struct fdt_scan_prop prop;
@@ -45,22 +46,28 @@ static uint32_t *fdt_scan_helper(
 
   while (1) {
     switch (bswap(lex[0])) {
-      case FDT_NOP: {
+      case FDT_NOP: { // 遇到NOP则指针移动一个字节,推测0是用来补齐的标志
         lex += 1;
         break;
       }
-      case FDT_PROP: {
+      case FDT_PROP: {  // 节点属性的标志
         assert (!last);
-        prop.name  = strings + bswap(lex[2]);
-        prop.len   = bswap(lex[1]);
-        prop.value = lex + 3;
-        if (node && !strcmp(prop.name, "#address-cells")) { node->address_cells = bswap(lex[3]); }
-        if (node && !strcmp(prop.name, "#size-cells"))    { node->size_cells    = bswap(lex[3]); }
-        lex += 3 + (prop.len+3)/4;
+        prop.name  = strings + bswap(lex[2]);   // 根据属性的名称在strings块中的偏移，得到名称
+        prop.len   = bswap(lex[1]);     // 属性值对应的长度
+        prop.value = lex + 3;   // 指向属性值存储位置的指针
+        if (node && !strcmp(prop.name, "#address-cells"))   // 记录当前节点的address-cells
+        { 
+            node->address_cells = bswap(lex[3]); 
+        }
+        if (node && !strcmp(prop.name, "#size-cells"))    // 记录当前节点的size-cells
+        { 
+            node->size_cells    = bswap(lex[3]); 
+        }
+        lex += 3 + (prop.len+3)/4;  // 跳过当前属性值所在的内存区域
         cb->prop(&prop, cb->extra);
         break;
       }
-      case FDT_BEGIN_NODE: {
+      case FDT_BEGIN_NODE: {  // 节点开始标志
         uint32_t *lex_next;
         if (!last && node && cb->done) cb->done(node, cb->extra);
         last = 1;
@@ -74,7 +81,7 @@ static uint32_t *fdt_scan_helper(
         lex = lex_next;
         break;
       }
-      case FDT_END_NODE: {
+      case FDT_END_NODE: {  // 节点结束标志
         if (!last && node && cb->done) cb->done(node, cb->extra);
         return lex + 1;
       }
@@ -88,12 +95,15 @@ static uint32_t *fdt_scan_helper(
 
 void fdt_scan(uintptr_t fdt, const struct fdt_cb *cb)
 {
+  //获取头部指针
   struct fdt_header *header = (struct fdt_header *)fdt;
 
   // Only process FDT that we understand
+  // 检查是否是已知的device
   if (bswap(header->magic) != FDT_MAGIC ||
       bswap(header->last_comp_version) > FDT_VERSION) return;
 
+  // 分别获取对应strings以及device tree结构体的头部指针
   const char *strings = (const char *)(fdt + bswap(header->off_dt_strings));
   uint32_t *lex = (uint32_t *)(fdt + bswap(header->off_dt_struct));
 
