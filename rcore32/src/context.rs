@@ -1,5 +1,4 @@
 use riscv::register::{
-    sstatus as xstatus,
     sstatus::Sstatus as Xstatus,
     mcause::Mcause,
 };

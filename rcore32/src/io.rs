@@ -1,4 +1,3 @@
-#[macro_use]
 use core::fmt::{Write, Result, Arguments};
 use super::sbi;
 
