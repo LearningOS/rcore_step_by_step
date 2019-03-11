@@ -1,26 +1,25 @@
-use riscv::registers::{mcause, mpec, sie, mie};
+#![allow(dead_code)]
 
+use crate::context::TrapFrame;
+use riscv::register::{stvec, sscratch, sie};
+
+#[no_mangle]
 pub fn init() {
+    println!("start interrupt init !");
     extern {
         fn __alltraps();
     }
     unsafe {
-        // Set sscratch register to 0, indicating to exception vector that we are
-        // presently executing in the kernel
-        xscratch::write(0);
-        // Set the exception vector address
-        xtvec::write(__alltraps as usize, xtvec::TrapMode::Direct);
-        // Enable IPI
+        sscratch::write(0);
+        stvec::write(__alltraps as usize, stvec::TrapMode::Direct);
         sie::set_ssoft();
-        // Enable serial interrupt
-        #[cfg(feature = "m_mode")]
-        mie::set_mext();
-        #[cfg(not(feature = "m_mode"))]
         sie::set_sext();
-        // NOTE: In M-mode: mie.MSIE is set by BBL.
-        //                  mie.MEIE can not be set in QEMU v3.0
-        //                  (seems like a bug)
     }
-    //use sbi::console_putchar;
-    //console_putchar();
+    println!("finish interrupt init !");
+}
+
+#[no_mangle]
+pub extern "C" fn rust_trap(tf: &mut TrapFrame) {
+    println!("here a trap ! ");
+    tf.increase_sepc();
 }
