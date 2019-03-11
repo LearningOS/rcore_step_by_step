@@ -3,20 +3,6 @@ use crate::context::TrapFrame;
 use riscv::register::{stvec, sscratch, sie};
 
 global_asm!(include_str!("boot/entry.asm"));
-#[cfg(feature = "m_mode")]
-global_asm!("
-    .equ xstatus,   0x300
-    .equ xscratch,  0x340
-    .equ xepc,      0x341
-    .equ xcause,    0x342
-    .equ xtval,     0x343
-    .macro XRET\n mret\n .endm
-    .macro TEST_BACK_TO_KERNEL  // s0 == back to kernel?
-        li   s3, 3 << 11
-        and  s0, s1, s3         // mstatus.MPP = 3
-    .endm
-");
-#[cfg(not(feature = "m_mode"))]
 global_asm!("
     .equ xstatus,   0x100
     .equ xscratch,  0x140
@@ -47,16 +33,37 @@ pub fn init() {
         fn __alltraps();
     }
     unsafe {
-        sscratch::write(0);
+        //sscratch::write(0);
         stvec::write(__alltraps as usize, stvec::TrapMode::Direct);
-        sie::set_ssoft();
-        sie::set_sext();
+        //sie::set_ssoft();
+        //sie::set_sext();
     }
     println!("finish interrupt init !");
 }
 
+use riscv::register::mcause::Trap;
+use riscv::register::mcause::Exception;
+use riscv::register::mcause::Interrupt;
+
 #[no_mangle]
 pub extern "C" fn rust_trap(tf: &mut TrapFrame) {
-    println!("here a trap ! ");
+    match tf.scause.cause() {
+        Trap::Exception(Exception::Breakpoint) => {
+            panic!("A breakpoint set by kernel");
+        },
+        Trap::Exception(Exception::MachineEnvCall) => {
+            match tf.x[17] {
+                9 => panic!("9"),
+                _ => panic!("unknown"),
+            };
+        },
+        Trap::Interrupt(Interrupt::MachineTimer) => {
+            println!("a timer!");
+        },
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {
+            println!("a timer!");
+        },
+        _ => tf.print_trapframe(),
+    }
     tf.increase_sepc();
 }

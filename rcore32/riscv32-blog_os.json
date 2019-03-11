@@ -18,7 +18,7 @@
         "emit-debug-gdb-scripts": false,
         "env": "",
         "executables": true,
-        "features": "",
+        "features": "+m,+a",
         "is-builtin": true,
         "linker": "rust-lld",
         "linker-flavor": "ld.lld",

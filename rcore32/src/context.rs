@@ -15,4 +15,12 @@ impl TrapFrame {
     pub fn increase_sepc(self: &mut Self) {
         self.sepc = self.sepc + 4;
     }
+
+    pub fn print_trapframe(self: &mut Self) {
+        println!("print the trapfram: \n 
+                    cause is {} \n
+                    sepc is {} \n",
+                    self.scause.bits(),
+                    self.sepc as u32);
+    }
 }

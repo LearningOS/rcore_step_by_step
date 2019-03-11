@@ -33,6 +33,10 @@ pub fn send_ipi(hart_mask: *const usize) {
     sbi_call(SBI_SEND_IPI, hart_mask as usize, 0, 0);
 }
 
+pub fn other_ecall() {
+    sbi_call(9, 0, 0, 0);
+}
+
 /// sbi: 设置时钟
 const SBI_SET_TIMER: usize = 0;
 /// sbi: 输出字符
