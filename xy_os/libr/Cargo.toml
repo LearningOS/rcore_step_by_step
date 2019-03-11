@@ -1,7 +1,0 @@
-[package]
-name = "libr"
-version = "0.1.0"
-authors = ["刘丰源 <2017011313@secoder.net>"]
-edition = "2018"
-
-[dependencies]
