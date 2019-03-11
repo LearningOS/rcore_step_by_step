@@ -14,3 +14,4 @@ panic = "abort" # disable stack unwinding on panic
 
 [dependencies]
 bbl = { path = "crate/bbl"}
+riscv = { git = "https://github.com/riscv-and-rust-and-decaf/riscv" }
