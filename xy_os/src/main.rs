@@ -3,7 +3,7 @@
 #![feature(global_asm)]
 
 #[macro_use]
-extern crate libr;
+pub mod io;
 
 use core::panic::PanicInfo;
 

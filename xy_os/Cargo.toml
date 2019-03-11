@@ -13,4 +13,4 @@ panic = "abort" # disable stack unwinding on panic
 panic = "abort" # disable stack unwinding on panic
 
 [dependencies]
-libr = { path = "crate/libr"}
+bbl = { path = "crate/bbl"}
