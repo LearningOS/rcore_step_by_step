@@ -67,7 +67,8 @@ fn machine_timer() {
 }
 
 fn super_timer() {
-    clock_set_next_event();
+    //响应当前时钟中断的同时，手动设置下一个时钟中断。这一函数调用同时清除了MTIP，使得CPU知道当前这个中断被正确处理。
+    clock_set_next_event(); 
     unsafe{
         TICK = TICK + 1;
         if(TICK % 100 == 0) {
