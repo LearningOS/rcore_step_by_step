@@ -118,13 +118,13 @@ _restore_context:
     LOAD x2, 2
 .endm
 
-    .section .text
-    .globl __alltraps
+.section .text
+.globl __alltraps
 __alltraps:
     SAVE_ALL
     mv a0, sp
     jal rust_trap
-    .globl __trapret
+.globl __trapret
 __trapret:
     RESTORE_ALL
     # return from supervisor call

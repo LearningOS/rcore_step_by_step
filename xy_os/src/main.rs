@@ -13,20 +13,6 @@ use core::panic::PanicInfo;
 
 global_asm!(include_str!("boot/entry.asm"));
 
-#[cfg(feature = "m_mode")]
-global_asm!("
-    .equ xstatus,   0x300
-    .equ xscratch,  0x340
-    .equ xepc,      0x341
-    .equ xcause,    0x342
-    .equ xtval,     0x343
-    .macro XRET\n mret\n .endm
-    .macro TEST_BACK_TO_KERNEL  // s0 == back to kernel?
-        li   s3, 3 << 11
-        and  s0, s1, s3         // mstatus.MPP = 3
-    .endm
-");
-#[cfg(not(feature = "m_mode"))]
 global_asm!("
     .equ xstatus,   0x100
     .equ xscratch,  0x140
@@ -58,9 +44,6 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    let a = "Hello";
-    let b = "World";
-    println!("{}, {}!", a, b);
     interrupt::init();
     unsafe{
         asm!("ebreak\n"::::);

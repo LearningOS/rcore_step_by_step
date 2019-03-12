@@ -4,10 +4,11 @@ mode := debug
 kernel := target/$(target)/$(mode)/xy_os
 bin := target/$(target)/$(mode)/kernel.bin
 
-all: $(bin)
+.PHONY: all clean run build asm qemu kernel
 
-$(bin): src
-	@cargo xbuild --target riscv_32-xy_os.json
+all: kernel
+
+$(bin): kernel
 	mkdir -p target/$(target)/bbl && \
 	cd target/$(target)/bbl && \
 	$(bbl_path)/configure \
@@ -18,5 +19,18 @@ $(bin): src
 	make -j32 && \
 	cp bbl $(abspath $@)
 
+build: $(bin)
+
+run: build qemu
+
+kernel: 
+	@cargo xbuild --target riscv_32-xy_os.json
+
+asm:
+	@riscv64-unknown-elf-objdump -d $(kernel) | less
+
 qemu:
 	qemu-system-riscv32 -kernel target/riscv_32-xy_os/debug/kernel.bin -nographic -machine virt
+
+clean:
+	@cargo clean
