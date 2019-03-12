@@ -8,10 +8,5 @@ pub extern "C" fn rust_main() -> ! {
     println!("Hello World");
     interrupt_init();
     clock_init();
-    //unsafe{
-        //asm!("ebreak\n"::::);
-        //ecall();
-    //}
-    println!("help !");
-    loop {}
+    loop{}
 }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::context::TrapFrame;
-use riscv::register::{stvec, sscratch, sie};
+use riscv::register::{stvec, sscratch, sie, sstatus};
 
 global_asm!(include_str!("boot/entry.asm"));
 global_asm!("
@@ -33,10 +33,11 @@ pub fn init() {
         fn __alltraps();
     }
     unsafe {
-        //sscratch::write(0);
+        sscratch::write(0);
+        sstatus::set_sie();
         stvec::write(__alltraps as usize, stvec::TrapMode::Direct);
-        //sie::set_ssoft();
-        //sie::set_sext();
+        sie::set_ssoft();
+        sie::set_sext();
     }
     println!("finish interrupt init !");
 }
@@ -44,26 +45,36 @@ pub fn init() {
 use riscv::register::mcause::Trap;
 use riscv::register::mcause::Exception;
 use riscv::register::mcause::Interrupt;
+use crate::clock::{TICK, clock_set_next_event};
 
 #[no_mangle]
 pub extern "C" fn rust_trap(tf: &mut TrapFrame) {
     match tf.scause.cause() {
-        Trap::Exception(Exception::Breakpoint) => {
-            panic!("A breakpoint set by kernel");
-        },
-        Trap::Exception(Exception::MachineEnvCall) => {
-            match tf.x[17] {
-                9 => panic!("9"),
-                _ => panic!("unknown"),
-            };
-        },
-        Trap::Interrupt(Interrupt::MachineTimer) => {
-            println!("a timer!");
-        },
-        Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            println!("a timer!");
-        },
+        Trap::Exception(Exception::Breakpoint) => breakpoint(),
+        Trap::Exception(Exception::MachineEnvCall) => machine_ecall(),
+        Trap::Interrupt(Interrupt::MachineTimer) => machine_timer(),
+        Trap::Interrupt(Interrupt::SupervisorTimer) => super_timer(),
         _ => tf.print_trapframe(),
     }
-    tf.increase_sepc();
+}
+
+fn breakpoint() {
+    panic!("A breakpoint set by kernel");
+}
+
+fn machine_timer() {
+    println!("a machine timer!");
+}
+
+fn super_timer() {
+    clock_set_next_event();
+    unsafe{
+        TICK = TICK + 1;
+        if(TICK % 100 == 0) {
+            println!("ticks 100!");
+        }
+    }
+}
+
+fn machine_ecall() {
 }
