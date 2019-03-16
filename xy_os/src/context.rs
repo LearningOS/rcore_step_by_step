@@ -1,14 +1,14 @@
 use riscv::register::{
-    sstatus::Sstatus as Xstatus,
-    mcause::Mcause,
+    sstatus::Sstatus,
+    scause::Scause,
 };
 
 pub struct TrapFrame {
-    pub x: [usize; 32], // general registers
-    pub sstatus: Xstatus, // Supervisor Status Register
-    pub sepc: usize, // Supervisor exception program counter, save the trap virtual address (here is used to save the process program entry addr?)
+    pub x: [usize; 32], // General registers
+    pub sstatus: Sstatus, // Supervisor Status Register
+    pub sepc: usize, // Supervisor exception program counter
     pub stval: usize, // Supervisor trap value
-    pub scause: Mcause, // scause register: record the cause of exception/interrupt/trap
+    pub scause: Scause, // Scause register: record the cause of exception/interrupt/trap
 }
 
 impl TrapFrame {

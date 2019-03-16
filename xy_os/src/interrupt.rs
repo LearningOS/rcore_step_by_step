@@ -1,17 +1,6 @@
 use crate::context::TrapFrame;
 use riscv::register::{stvec, sstatus};
 
-global_asm!("
-    .equ xstatus,   0x100
-    .equ xscratch,  0x140
-    .equ xepc,      0x141
-    .equ xcause,    0x142
-    .equ xtval,     0x143
-    .macro XRET\n sret\n .endm
-    .macro TEST_BACK_TO_KERNEL
-        andi s0, s1, 1 << 8     // sstatus.SPP = 1
-    .endm
-");
 global_asm!(r"
     .equ XLENB,     4
     .equ XLENb,     32
@@ -36,9 +25,9 @@ pub fn init() {
     println!("++++setup interrupt !++++");
 }
 
-use riscv::register::mcause::Trap;
-use riscv::register::mcause::Exception;
-use riscv::register::mcause::Interrupt;
+use riscv::register::scause::Trap;
+use riscv::register::scause::Exception;
+use riscv::register::scause::Interrupt;
 use crate::clock::{TICK, clock_set_next_event};
 
 #[no_mangle]
@@ -52,7 +41,7 @@ pub extern "C" fn rust_trap(tf: &mut TrapFrame) {
 }
 
 fn super_timer() {
-    //响应当前时钟中断的同时，手动设置下一个时钟中断。这一函数调用同时清除了MTIP，使得CPU知道当前这个中断被正确处理。
+    // 响应当前时钟中断的同时，手动设置下一个时钟中断。这一函数调用同时清除了MTIP，使得CPU知道当前这个中断被正确处理。
     clock_set_next_event(); 
     unsafe{
         TICK = TICK + 1;
