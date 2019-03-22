@@ -80,3 +80,7 @@ $(bin): kernel
 
 kernel:
 	@cargo xbuild $(build_args)
+
+docker:
+	#sudo docker run -it --mount type=bind,source=/home/pan/Code/rcore_step_by_step/,destination=/mnt rust_riscv bash
+	sudo docker run -it --mount type=bind,source=$(shell pwd)/..,destination=/mnt panqinglin/rust_riscv bash
