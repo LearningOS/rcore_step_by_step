@@ -5,7 +5,7 @@ authors = ["PanQL <panqinglin00@163.com>"]
 edition = "2018"
 
 [dependencies]
-riscv = { git = "https://github.com/riscv-and-rust-and-decaf/riscv" }
+riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 
 [profile.dev]
 panic = "abort"
