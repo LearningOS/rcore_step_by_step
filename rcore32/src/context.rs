@@ -17,10 +17,12 @@ impl TrapFrame {
     }
 
     pub fn print_trapframe(self: &mut Self) {
-        println!("print the trapfram: \n 
-                    cause is {} \n
-                    sepc is {} \n",
+        println!("print the trapfram:  
+                    cause is {:#x} 
+                    sepc is {:#x} 
+                    stval : {:#x} ",
                     self.scause.bits(),
-                    self.sepc as u32);
+                    self.sepc ,
+                    self.stval as usize);
     }
 }

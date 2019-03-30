@@ -46,12 +46,16 @@ use riscv::register::mcause::Trap;
 use riscv::register::mcause::Exception;
 use riscv::register::mcause::Interrupt;
 use crate::clock::{TICK, clock_set_next_event};
+use crate::memory::{do_pgfault, PageFault};
 
 #[no_mangle]
-pub extern "C" fn rust_trap(tf: &mut TrapFrame) {
+pub extern "C" fn rust_trap(tf:&mut TrapFrame) {
     match tf.scause.cause() {
         Trap::Exception(Exception::Breakpoint) => breakpoint(),
         Trap::Exception(Exception::MachineEnvCall) => machine_ecall(),
+        Trap::Exception(Exception::LoadPageFault) => do_pgfault(tf, PageFault::LoadPageFault),
+        Trap::Exception(Exception::StorePageFault) => do_pgfault(tf, PageFault::StorePageFault),
+        Trap::Exception(Exception::InstructionPageFault) => do_pgfault(tf, PageFault::InstructionPageFault),
         Trap::Interrupt(Interrupt::MachineTimer) => machine_timer(),
         Trap::Interrupt(Interrupt::SupervisorTimer) => super_timer(),
         _ => tf.print_trapframe(),
