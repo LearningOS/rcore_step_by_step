@@ -1,4 +1,5 @@
 use crate::context::TrapFrame;
+use crate::memory::{do_pgfault, PageFault};
 use riscv::register::{stvec, sstatus};
 
 global_asm!(r"
@@ -35,6 +36,8 @@ pub extern "C" fn rust_trap(tf: &mut TrapFrame) {
     match tf.scause.cause() {
         Trap::Exception(Exception::Breakpoint) => breakpoint(),
         Trap::Interrupt(Interrupt::SupervisorTimer) => super_timer(),
+        Trap::Exception(Exception::LoadPageFault) => do_pgfault(tf, PageFault::LoadPageFault),
+        Trap::Exception(Exception::StorePageFault) => do_pgfault(tf, PageFault::StorePageFault),
         _ => panic!("..."),
     }
     // tf.increase_sepc();

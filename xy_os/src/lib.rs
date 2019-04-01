@@ -12,3 +12,4 @@ mod context;
 mod interrupt;
 mod init;
 mod clock;
+mod memory;
