@@ -21,3 +21,8 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern fn abort() {
     panic!("abort");
 }
+
+#[lang = "oom"]
+fn oom(_: Layout) -> ! {
+    panic!("out of memory");
+}

@@ -5,7 +5,13 @@ authors = ["PanQL <panqinglin00@163.com>"]
 edition = "2018"
 
 [dependencies]
+spin = "0.3"
+bitflags = "1.0"
+buddy_system_allocator = "0.1"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
+device_tree = {git = "https://github.com/rcore-os/device_tree-rs"}
+bit_field = "0.9"
+lazy_static = { version = "1.3", features = ["spin_no_std"] }
 
 [profile.dev]
 panic = "abort"

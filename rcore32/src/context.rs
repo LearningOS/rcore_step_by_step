@@ -18,8 +18,8 @@ impl TrapFrame {
 
     pub fn print_trapframe(self: &mut Self) {
         println!("print the trapfram:  
-                    cause is {:#x} 
-                    sepc is {:#x} 
+                    cause : {:#x} 
+                    sepc : {:#x} 
                     stval : {:#x} ",
                     self.scause.bits(),
                     self.sepc ,
