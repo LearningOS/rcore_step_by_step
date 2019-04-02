@@ -1,5 +1,4 @@
 mod frame_alloc;
-pub mod addr;
 mod paging;
 
 use riscv::register::{satp,sstatus};
@@ -7,7 +6,9 @@ use riscv::paging::{PageTable, PageTableEntry, RecursivePageTable, PageTableFlag
 use riscv::addr::*;
 
 use self::frame_alloc::{init as init_frame_allocator, test as test_frame_allocator, alloc_frame, dealloc_frame};
-use crate::consts::{KERNEL_HEAP_SIZE, KERNEL_OFFSET , MEMORY_OFFSET, PAGE_SIZE, MEMORY_END};
+use self::paging::{InactivePageTable, active_table};
+use crate::consts::{KERNEL_HEAP_SIZE, KERNEL_OFFSET , MAX_DTB_SIZE,
+    MEMORY_OFFSET, PAGE_SIZE, MEMORY_END};
 use crate::HEAP_ALLOCATOR;
 use crate::context::TrapFrame;
 
@@ -31,9 +32,10 @@ pub fn init(dtb : usize) {
     test_frame_allocator();
 
     init_heap();
-    unsafe{
-        clear_bss();
-    }
+
+    remap_kernel(dtb);
+
+    println!("hello world");
 
 }
 
@@ -87,3 +89,76 @@ extern "C" {
     fn bootstack();
     fn bootstacktop();
 }
+
+fn remap_kernel(dtb : usize) {
+    let offset = KERNEL_OFFSET as usize - MEMORY_OFFSET as usize;
+    println!("offset {:#x} ", offset);
+    let mut inac_table = InactivePageTable::new();
+    println!("stext {:#x} ", stext as usize);
+    println!("etext {:#x} ", etext as usize);
+    println!("sdata {:#x} ", sdata as usize);
+    println!("edata {:#x} ", edata as usize);
+    println!("srodata {:#x} ", srodata as usize);
+    println!("erodata {:#x} ", erodata as usize);
+    println!("sbss {:#x} ", sbss as usize);
+    println!("ebss {:#x} ", ebss as usize);
+    println!("start {:#x} ", start as usize);
+    println!("end {:#x} ", end as usize);
+    println!("bootstack {:#x} ", bootstack as usize);
+    println!("bootstacktop {:#x} ", bootstacktop as usize);
+
+    let mut idx = 0 as usize;
+    let stext_start = stext as usize / PAGE_SIZE;
+    let stext_end = (etext as usize - 1) / PAGE_SIZE + 1;
+    idx = stext_start;
+    while( idx <= stext_end) {
+        inac_table.map(idx << 12, (idx << 12) - offset, Flags::EXECUTABLE | Flags::READABLE | Flags::VALID);
+        idx += 1;
+    }
+    
+    let srodata_start = srodata as usize / PAGE_SIZE;
+    let srodata_end = (erodata as usize - 1) / PAGE_SIZE + 1;
+    if(idx < srodata_start){ idx = srodata_start; }
+    while( idx <= srodata_end) {
+        inac_table.map(idx << 12, (idx << 12) - offset, Flags::READABLE | Flags::VALID);
+        idx += 1;
+    }
+    
+    let sdata_start = sdata as usize / PAGE_SIZE;
+    let sdata_end = (edata as usize - 1) / PAGE_SIZE + 1;
+    if(idx < sdata_start){ idx = sdata_start; }
+    while( idx <= sdata_end) {
+        inac_table.map(idx << 12, (idx << 12) - offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+        idx += 1;
+    }
+
+    let bootstack_start = bootstack as usize / PAGE_SIZE;
+    let bootstack_end = (bootstacktop as usize - 1) / PAGE_SIZE + 1;
+    if(idx < bootstack_start){ idx = bootstack_start; }
+    while( idx <= bootstack_end) {
+        inac_table.map(idx << 12, (idx << 12) - offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+        idx += 1;
+    }
+
+    let sbss_start = sbss as usize / PAGE_SIZE;
+    let sbss_end = (ebss as usize - 1) / PAGE_SIZE + 1;
+    if(idx < sbss_start){ idx = sbss_start; }
+    while( idx <= sbss_end) {
+        inac_table.map(idx << 12, (idx << 12) - offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+        idx += 1;
+    }
+
+    let dtb_start = dtb as usize / PAGE_SIZE;
+    let dtb_end = (dtb as usize + MAX_DTB_SIZE - 1) / PAGE_SIZE + 1;
+    if(idx < dtb_start){ idx = dtb_start; }
+    while( idx <= dtb_end) {
+        inac_table.map(idx << 12, (idx << 12 )- offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+        idx += 1;
+    }
+
+    InactivePageTable::print_p1(0x80ffd000);
+    unsafe{
+        inac_table.active();
+    }
+}
+
