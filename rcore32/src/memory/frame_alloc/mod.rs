@@ -11,15 +11,11 @@ use spin::Mutex;
 
 use riscv::addr::*;
 
-/// A trait for types that can allocate a frame of memory.
 pub trait FrameAllocator {
-    /// Allocate a frame of the appropriate size and return it if possible.
     fn alloc(&mut self) -> Option<Frame>;
 }
 
-/// A trait for types that can deallocate a frame of memory.
 pub trait FrameDeallocator {
-    /// Deallocate the given frame of memory.
     fn dealloc(&mut self, frame: Frame);
 }
 
@@ -61,7 +57,7 @@ impl FrameAllocator for GlobalFrameAlloc {
             .alloc()
             .map(|id| id * PAGE_SIZE + MEMORY_OFFSET);
         ret.map(|addr| Frame::of_addr(PhysAddr::new(addr)))
-        // TODO: try to swap out when alloc failed
+        // 这里在实现被动的页面换入换出的时候可能需要修改
     }
 }
 

@@ -34,6 +34,11 @@ pub fn init(dtb : usize) {
     init_heap();
 
     remap_kernel(dtb);
+    // 执行clear_bss之后会导致failed to alloc frame问题，还没有找出原因，所以暂时不执行clear_bss()
+    //unsafe{
+        //clear_bss();
+    //}
+    test_frame_allocator();
 
     println!("hello world");
 
@@ -73,7 +78,6 @@ fn init_heap() {
     println!("heap init end");
 }
 
-// Symbols provided by linker script
 #[allow(dead_code)]
 extern "C" {
     fn stext();
@@ -92,73 +96,26 @@ extern "C" {
 
 fn remap_kernel(dtb : usize) {
     let offset = KERNEL_OFFSET as usize - MEMORY_OFFSET as usize;
-    println!("offset {:#x} ", offset);
-    let mut inac_table = InactivePageTable::new();
-    println!("stext {:#x} ", stext as usize);
-    println!("etext {:#x} ", etext as usize);
-    println!("sdata {:#x} ", sdata as usize);
-    println!("edata {:#x} ", edata as usize);
-    println!("srodata {:#x} ", srodata as usize);
-    println!("erodata {:#x} ", erodata as usize);
-    println!("sbss {:#x} ", sbss as usize);
-    println!("ebss {:#x} ", ebss as usize);
-    println!("start {:#x} ", start as usize);
-    println!("end {:#x} ", end as usize);
-    println!("bootstack {:#x} ", bootstack as usize);
-    println!("bootstacktop {:#x} ", bootstacktop as usize);
+    let inac_table = &mut InactivePageTable::new();
 
-    let mut idx = 0 as usize;
-    let stext_start = stext as usize / PAGE_SIZE;
-    let stext_end = (etext as usize - 1) / PAGE_SIZE + 1;
-    idx = stext_start;
-    while( idx <= stext_end) {
-        inac_table.map(idx << 12, (idx << 12) - offset, Flags::EXECUTABLE | Flags::READABLE | Flags::VALID);
-        idx += 1;
-    }
-    
-    let srodata_start = srodata as usize / PAGE_SIZE;
-    let srodata_end = (erodata as usize - 1) / PAGE_SIZE + 1;
-    if(idx < srodata_start){ idx = srodata_start; }
-    while( idx <= srodata_end) {
-        inac_table.map(idx << 12, (idx << 12) - offset, Flags::READABLE | Flags::VALID);
-        idx += 1;
-    }
-    
-    let sdata_start = sdata as usize / PAGE_SIZE;
-    let sdata_end = (edata as usize - 1) / PAGE_SIZE + 1;
-    if(idx < sdata_start){ idx = sdata_start; }
-    while( idx <= sdata_end) {
-        inac_table.map(idx << 12, (idx << 12) - offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-        idx += 1;
-    }
-
-    let bootstack_start = bootstack as usize / PAGE_SIZE;
-    let bootstack_end = (bootstacktop as usize - 1) / PAGE_SIZE + 1;
-    if(idx < bootstack_start){ idx = bootstack_start; }
-    while( idx <= bootstack_end) {
-        inac_table.map(idx << 12, (idx << 12) - offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-        idx += 1;
-    }
-
-    let sbss_start = sbss as usize / PAGE_SIZE;
-    let sbss_end = (ebss as usize - 1) / PAGE_SIZE + 1;
-    if(idx < sbss_start){ idx = sbss_start; }
-    while( idx <= sbss_end) {
-        inac_table.map(idx << 12, (idx << 12) - offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-        idx += 1;
-    }
-
-    let dtb_start = dtb as usize / PAGE_SIZE;
-    let dtb_end = (dtb as usize + MAX_DTB_SIZE - 1) / PAGE_SIZE + 1;
-    if(idx < dtb_start){ idx = dtb_start; }
-    while( idx <= dtb_end) {
-        inac_table.map(idx << 12, (idx << 12 )- offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-        idx += 1;
-    }
-
-    InactivePageTable::print_p1(0x80ffd000);
+    map_segament(stext as usize, etext as usize - 1, inac_table, offset, Flags::EXECUTABLE | Flags::READABLE | Flags::VALID);
+    map_segament(srodata as usize, erodata as usize - 1, inac_table, offset, Flags::READABLE | Flags::VALID);
+    map_segament(sdata as usize, edata as usize - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+    map_segament(bootstack as usize, bootstacktop as usize - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+    map_segament(sbss as usize, ebss as usize - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+    map_segament(dtb as usize, dtb as usize + MAX_DTB_SIZE - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
     unsafe{
         inac_table.active();
+    }
+}
+
+fn map_segament(begin : usize, end : usize, table : &mut InactivePageTable, offset : usize, flags : Flags) {
+    let s = begin / PAGE_SIZE;
+    let e = end / PAGE_SIZE + 1;
+    let mut idx = s;
+    while(idx <= e) {
+        table.map(idx << 12, (idx << 12) - offset, flags);
+        idx += 1;
     }
 }
 

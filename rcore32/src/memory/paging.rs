@@ -173,6 +173,20 @@ impl InactivePageTable {
     }
 
     pub fn unmap(&mut self, addr : usize ) {
+        let vaddr = VirtAddr::new(addr);    // 虚拟地址
+        let p1_addr = active_table().with_temporary_map(self.root_frame.start_address(), |_, table : &mut PageTable|{
+            if !table[vaddr.p2_index()].is_unused() {
+                let ret = table[vaddr.p2_index()].addr();
+                Some(ret)
+            }else{
+                None
+            }
+        });
+        if p1_addr.is_some() {
+            active_table().with_temporary_map(p1_addr.unwrap(), |_, table : &mut PageTable|{
+                table[vaddr.p1_index()].set_unused();
+            });
+        }
     }
 
     pub unsafe fn active(&self) {
