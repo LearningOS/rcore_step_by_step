@@ -6,7 +6,7 @@
 
 - [3. 格式化输出](report/3.%20格式化输出.md)
 
-- [4. Trap](report/4.%20Trpa.md)
+- [4. Trap](report/4.%20Trap.md)
 
 - [4-1. 中断跳转](report/4-1.%20中断跳转.md)
 
