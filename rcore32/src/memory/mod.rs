@@ -1,18 +1,15 @@
 mod frame_alloc;
-mod paging;
+pub mod paging;
 
-use riscv::register::{satp,sstatus};
-use riscv::paging::{PageTable, PageTableEntry, RecursivePageTable, PageTableFlags as Flags};
-use riscv::addr::*;
+use riscv::register::sstatus;
+use riscv::paging::{PageTable, PageTableFlags as Flags};
 
-use self::frame_alloc::{init as init_frame_allocator, test as test_frame_allocator, alloc_frame, dealloc_frame};
-use self::paging::{InactivePageTable, active_table};
+use self::frame_alloc::{init as init_frame_allocator, test as test_frame_allocator,};
+use self::paging::InactivePageTable;
 use crate::consts::{KERNEL_HEAP_SIZE, KERNEL_OFFSET , MAX_DTB_SIZE,
     MEMORY_OFFSET, PAGE_SIZE, MEMORY_END};
 use crate::HEAP_ALLOCATOR;
 use crate::context::TrapFrame;
-
-use paging::ActivePageTable;
 
 const TEMP_ADDRESS : *mut PageTable= 0xFFC00000 as *mut PageTable;
 
@@ -95,27 +92,47 @@ extern "C" {
 }
 
 fn remap_kernel(dtb : usize) {
-    let offset = KERNEL_OFFSET as usize - MEMORY_OFFSET as usize;
-    let inac_table = &mut InactivePageTable::new();
+    let offset = - ( KERNEL_OFFSET as isize - MEMORY_OFFSET as isize);
 
-    map_segament(stext as usize, etext as usize - 1, inac_table, offset, Flags::EXECUTABLE | Flags::READABLE | Flags::VALID);
-    map_segament(srodata as usize, erodata as usize - 1, inac_table, offset, Flags::READABLE | Flags::VALID);
-    map_segament(sdata as usize, edata as usize - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-    map_segament(bootstack as usize, bootstacktop as usize - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-    map_segament(sbss as usize, ebss as usize - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
-    map_segament(dtb as usize, dtb as usize + MAX_DTB_SIZE - 1, inac_table, offset, Flags::WRITABLE | Flags::READABLE | Flags::VALID);
+    use crate::memory_set::{MemorySet, handler::Linear, attr::MemoryAttr};
+    let mut memset = MemorySet::new();
+    memset.push(
+        stext as usize,
+        etext as usize,
+        MemoryAttr::new().set_execute().set_readonly(),
+        Linear::new(offset),
+    );
+    memset.push(
+        srodata as usize,
+        erodata as usize,
+        MemoryAttr::new().set_readonly(),
+        Linear::new(offset),
+    );
+    memset.push(
+        sdata as usize,
+        edata as usize,
+        MemoryAttr::new(),
+        Linear::new(offset),
+    );
+    memset.push(
+        bootstack as usize,
+        bootstacktop as usize,
+        MemoryAttr::new(),
+        Linear::new(offset),
+    );
+    memset.push(
+        sbss as usize,
+        ebss as usize,
+        MemoryAttr::new(),
+        Linear::new(offset),
+    );
+    memset.push(
+        dtb as usize,
+        dtb as usize + MAX_DTB_SIZE,
+        MemoryAttr::new(),
+        Linear::new(offset),
+    );
     unsafe{
-        inac_table.active();
+        memset.activate();
     }
 }
-
-fn map_segament(begin : usize, end : usize, table : &mut InactivePageTable, offset : usize, flags : Flags) {
-    let s = begin / PAGE_SIZE;
-    let e = end / PAGE_SIZE + 1;
-    let mut idx = s;
-    while(idx <= e) {
-        table.map(idx << 12, (idx << 12) - offset, flags);
-        idx += 1;
-    }
-}
-

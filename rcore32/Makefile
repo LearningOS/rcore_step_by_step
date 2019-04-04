@@ -79,6 +79,9 @@ $(bin): kernel
 	cp bbl $(abspath $@)
 
 kernel:
+	@-patch -p0 -N -b \
+		$(shell rustc --print sysroot)/lib/rustlib/src/rust/src/libcore/sync/atomic.rs \
+		src/tools/atomic.patch
 	@cargo xbuild $(build_args)
 
 docker:

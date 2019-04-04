@@ -1,6 +1,5 @@
 use crate::interrupt::init as interrupt_init;
 use crate::clock::init as clock_init;
-use crate::sbi::other_ecall as ecall;
 use crate::memory::{init as memory_init, clear_bss};
 
 #[allow(dead_code)]

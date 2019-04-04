@@ -1,0 +1,38 @@
+use alloc::boxed::Box;
+use crate::memory::paging::{ActivePageTable, PageRange,};
+use super::{attr::MemoryAttr, handler::MemoryHandler, };
+use riscv::addr::*;
+use crate::consts::PAGE_SIZE;
+
+#[derive(Debug,Clone)]
+pub struct MemoryArea {
+    start : usize,
+    end : usize, 
+    handler : Box<MemoryHandler>,
+    attr : MemoryAttr,
+}
+
+impl MemoryArea {
+    pub fn map(&self, pt : &mut ActivePageTable) {
+        for page in PageRange::new(self.start, self.end) {
+            self.handler.map(pt, page, &self.attr);
+        }
+    }
+
+    pub fn is_overlap_with(&self, start_addr : usize, end_addr : usize) -> bool {
+        let p1 = self.start / PAGE_SIZE;
+        let p2 = (self.end - 1) / PAGE_SIZE + 1;
+        let p3 = start_addr / PAGE_SIZE;
+        let p4 = (end_addr - 1) / PAGE_SIZE + 1;
+        !((p1 >= p4) || (p2 <= p3))
+    }
+
+    pub fn new(start_addr : usize, end_addr : usize, handler : Box<MemoryHandler>, attr : MemoryAttr) -> Self {
+        MemoryArea{
+            start : start_addr,
+            end : end_addr,
+            handler : handler,
+            attr : attr,
+        }
+    }
+}

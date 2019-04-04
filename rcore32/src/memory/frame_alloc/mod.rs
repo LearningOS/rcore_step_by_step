@@ -1,7 +1,8 @@
 mod bit_allocator;
 
+#[allow(unused_imports)]
 use bit_allocator::{BitAlloc4K, BitAlloc, BitAlloc256, BitAllocCascade16};
-use core::ops::Range;
+//use core::ops::Range;
 use crate::consts::{MEMORY_OFFSET, PAGE_SIZE};
 
 extern crate lazy_static;

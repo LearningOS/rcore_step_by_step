@@ -1,8 +1,4 @@
 // 这部分代码主要来自于rcore-plus 的 crate/bit_allocator .进行了一些删减，留下足够用的内容.
-#![feature(asm)]
-
-extern crate bit_field;
-
 use bit_field::BitField;
 use core::ops::Range;
 

@@ -1,6 +1,6 @@
 pub static mut TICK: usize = 0; //类似ucore中的ticks的作用，用于时钟中断次数的计时，可以在实现分时的时候作为辅助。
 
-use riscv::register::{sie, sstatus};
+use riscv::register::sie;
 pub fn init() {
     unsafe{
         TICK = 0;
@@ -17,7 +17,7 @@ fn get_cycle() -> u64 {
         let hi = timeh::read();
         let lo = time::read();
         let tmp = timeh::read();
-        if(hi == tmp){
+        if hi == tmp {
             return ((hi as u64)<<32) | (lo as u64);
         }
     }

@@ -1,8 +1,7 @@
-use core::slice;
 use crate::consts::{RECURSIVE_INDEX, PAGE_SIZE};
 use riscv::asm::{sfence_vma, sfence_vma_all};
 use riscv::paging::{
-    Mapper, PageTable, PageTableEntry, PageTableFlags as EF, 
+    Mapper, PageTable as RvPageTable, PageTableEntry, PageTableFlags as EF, 
     RecursivePageTable,FrameAllocator, FrameDeallocator,
 };
 use riscv::register::satp;
@@ -10,70 +9,71 @@ use riscv::addr::*;
 use super::frame_alloc::{alloc_frame, dealloc_frame};
 
 const TEMP_PAGE_ADDR: usize = 0xcafeb000;    // 临时挂靠的地址
-const ROOT_PAGE_TABLE: *mut PageTable =
-    ((RECURSIVE_INDEX << 12 << 10) | ((RECURSIVE_INDEX + 1) << 12)) as *mut PageTable;
+const ROOT_PAGE_TABLE: *mut RvPageTable =
+    ((RECURSIVE_INDEX << 12 << 10) | ((RECURSIVE_INDEX + 1) << 12)) as *mut RvPageTable;
 
 pub struct PageEntry(&'static mut PageTableEntry, Page);
 
 pub struct ActivePageTable(RecursivePageTable<'static>, PageEntry);
 
 impl PageEntry {
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         unsafe {
             sfence_vma(0, self.1.start_address().as_usize());
         }
     }
 
-    fn accessed(&self) -> bool {
+    pub fn accessed(&self) -> bool {
         self.0.flags().contains(EF::ACCESSED)
     }
-    fn clear_accessed(&mut self) {
+    pub fn clear_accessed(&mut self) {
         self.0.flags_mut().remove(EF::ACCESSED);
     }
 
-    fn dirty(&self) -> bool {
+    pub fn dirty(&self) -> bool {
         self.0.flags().contains(EF::DIRTY)
     }
-    fn clear_dirty(&mut self) {
+    pub fn clear_dirty(&mut self) {
         self.0.flags_mut().remove(EF::DIRTY);
     }
 
-    fn writable(&self) -> bool {
+    pub fn writable(&self) -> bool {
         self.0.flags().contains(EF::WRITABLE)
     }
-    fn set_writable(&mut self, value: bool) {
+    pub fn set_writable(&mut self, value: bool) {
         self.0.flags_mut().set(EF::WRITABLE, value);
     }
 
-    fn present(&self) -> bool {
+    pub fn present(&self) -> bool {
         self.0.flags().contains(EF::VALID | EF::READABLE)
     }
-    fn set_present(&mut self, value: bool) {
+    pub fn set_present(&mut self, value: bool) {
         self.0.flags_mut().set(EF::VALID | EF::READABLE, value);
     }
 
-    fn target(&self) -> usize {
+    pub fn target(&self) -> usize {
         self.0.addr().as_usize()
     }
-    fn set_target(&mut self, target: usize) {
+    pub fn set_target(&mut self, target: usize) {
         let flags = self.0.flags();
         let frame = Frame::of_addr(PhysAddr::new(target));
         self.0.set(frame, flags);
     }
 
-    fn user(&self) -> bool {
+    pub fn user(&self) -> bool {
         self.0.flags().contains(EF::USER)
     }
-    fn set_user(&mut self, value: bool) {
+    pub fn set_user(&mut self, value: bool) {
         self.0.flags_mut().set(EF::USER, value);
     }
 
-    fn execute(&self) -> bool {
+    pub fn execute(&self) -> bool {
         self.0.flags().contains(EF::EXECUTABLE)
     }
-    fn set_execute(&mut self, value: bool) {
+    pub fn set_execute(&mut self, value: bool) {
         self.0.flags_mut().set(EF::EXECUTABLE, value);
     }
+
 }
 
 impl ActivePageTable {
@@ -144,7 +144,7 @@ impl InactivePageTable {
     pub fn new() -> Self {
         let frame = alloc_frame().expect("InactivePageTable new : failed to alloc frame");
         let target = PhysAddr::new(frame.start_address().as_usize());
-        active_table().with_temporary_map(target, |_, table : &mut PageTable|{
+        active_table().with_temporary_map(target, |_, table : &mut RvPageTable|{
             table.zero();
             table.set_recursive(RECURSIVE_INDEX, frame.clone());
         });
@@ -152,44 +152,23 @@ impl InactivePageTable {
     }
 
     pub fn map(&mut self, addr: usize, target: usize, flags : EF) {
-        let paddr = PhysAddr::new(target);  // 物理地址
-        let vaddr = VirtAddr::new(addr);    // 虚拟地址
-
-        let p1_addr = active_table().with_temporary_map(self.root_frame.start_address(), |_, table : &mut PageTable|{
-            if table[vaddr.p2_index()].is_unused() {
-                let new_frame : Frame = alloc_frame().expect("failed to alloc frame");
-                table[vaddr.p2_index()].set(new_frame, EF::VALID);
-                let ret = new_frame.start_address();
-                ret
+        self.edit(|pt : &mut ActivePageTable|{
+            if let Some(entry) = pt.get_entry(addr) {
             }else{
-                let ret = table[vaddr.p2_index()].addr();
-                ret
+                let entry = pt.map(addr, target);
+                entry.set_execute(flags.contains(EF::EXECUTABLE));
+                entry.set_writable(flags.contains(EF::WRITABLE));
             }
-        });
-        
-        active_table().with_temporary_map(p1_addr, |_, table : &mut PageTable|{
-            table[vaddr.p1_index()].set(Frame::of_addr(paddr), flags);
-        });
+        })
     }
 
     pub fn unmap(&mut self, addr : usize ) {
-        let vaddr = VirtAddr::new(addr);    // 虚拟地址
-        let p1_addr = active_table().with_temporary_map(self.root_frame.start_address(), |_, table : &mut PageTable|{
-            if !table[vaddr.p2_index()].is_unused() {
-                let ret = table[vaddr.p2_index()].addr();
-                Some(ret)
-            }else{
-                None
-            }
-        });
-        if p1_addr.is_some() {
-            active_table().with_temporary_map(p1_addr.unwrap(), |_, table : &mut PageTable|{
-                table[vaddr.p1_index()].set_unused();
-            });
-        }
+        self.edit(|pt : &mut ActivePageTable|{
+            pt.unmap(addr)
+        })
     }
 
-    pub unsafe fn active(&self) {
+    pub unsafe fn activate(&self) {
         let old_token = Self::active_token();
         let new_token = self.token();
         println!("switch table {:x?} -> {:x?}", old_token, new_token);
@@ -218,7 +197,7 @@ impl InactivePageTable {
     }
 
     pub fn print_table(&mut self) {
-        active_table().with_temporary_map(self.root_frame.start_address(), |_, table : &mut PageTable|{
+        active_table().with_temporary_map(self.root_frame.start_address(), |_, table : &mut RvPageTable|{
             let mut idx = 0;
             while idx < 1024{
                 println!("{:#x}, {:#x}", idx, table[idx].ppn());
@@ -228,13 +207,34 @@ impl InactivePageTable {
     }
 
     pub fn print_p1(addr : usize) {
-        active_table().with_temporary_map(PhysAddr::new(addr), |_, table : &mut PageTable|{
+        active_table().with_temporary_map(PhysAddr::new(addr), |_, table : &mut RvPageTable|{
             let mut idx = 0;
             while idx < 1024{
                 println!("{:#x}, {:#x}", idx, table[idx].ppn());
                 idx += 1;
             }
         });
+    }
+
+    pub fn edit<T>(&mut self, f : impl FnOnce(&mut ActivePageTable) -> T) -> T {
+        let target = satp::read().frame().start_address();
+        active_table().with_temporary_map(target, |active_table, root_table : &mut RvPageTable|{
+            let backup = root_table[RECURSIVE_INDEX].clone();
+
+            root_table[RECURSIVE_INDEX].set(self.root_frame.clone(), EF::VALID);
+            unsafe {
+                sfence_vma_all();
+            }
+
+            let ret = f(active_table);  // 此时的f运行在新的上下文中，即active_table代表的是现在这个InactivePageTable
+
+            root_table[RECURSIVE_INDEX] = backup;
+            unsafe {
+                sfence_vma_all();
+            }
+
+            ret
+        })
     }
 }
 
@@ -249,5 +249,35 @@ impl FrameAllocator for FrameAllocatorForRiscv {
 impl FrameDeallocator for FrameAllocatorForRiscv {
     fn dealloc(&mut self, frame: Frame) {
         dealloc_frame(frame);
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct PageRange {
+    start: usize,
+    end: usize,
+}
+
+impl Iterator for PageRange {
+    type Item = usize;
+
+    fn next(&mut self) -> Option<usize> {
+        if self.start < self.end {
+            let page = self.start << 12;
+            self.start += 1;
+            Some(page)
+        } else {
+            None
+        }
+    }
+}
+
+impl PageRange {
+    pub fn new(start_addr : usize, end_addr : usize) -> Self {
+        PageRange{
+            start : start_addr / PAGE_SIZE,
+            end : (end_addr - 1) / PAGE_SIZE + 1,
+        }
     }
 }

@@ -13,6 +13,8 @@ device_tree = {git = "https://github.com/rcore-os/device_tree-rs"}
 bit_field = "0.9"
 lazy_static = { version = "1.3", features = ["spin_no_std"] }
 
+[target.riscv32-blog_os.dependencies]
+
 [profile.dev]
 panic = "abort"
 
