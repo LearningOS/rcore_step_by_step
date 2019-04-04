@@ -2,7 +2,9 @@
 
 ## 前言
 
-本系列文章使用 Rust 编程语言编写了一个小型操作系统。每篇文章包含所需所有所需代码和相关知识点讲解。源代码位于 [GitHub]()
+本系列文章使用 Rust 编程语言编写了一个小型操作系统。每篇文章包含所需所有所需代码和相关知识点讲解。你可以在 [GitHub](https://github.com/xy-plus/rcore_step_by_step/tree/lfy) 上找到源代码和文档。
+
+> 这里有一些[碎碎念](https://zhuanlan.zhihu.com/p/58513043)
 
 ## 目录
 
