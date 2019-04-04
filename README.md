@@ -1,6 +1,5 @@
-# rcore_step_by_step
+# 从零开始写 OS
 
-## reference
- - https://os.phil-opp.com/
- - https://github.com/oscourse-tsinghua/rcore_plus/tree/lab8-rv32-tinyfs
- - https://github.com/chyyuu/rcore_plus/tree/lab1-rv32-interrupt .. https://github.com/chyyuu/rcore_plus/tree/lab8-rv32-fs
+## 目录
+
+- [从零开始写 OS (1) —— 独立式可执行程序](report/1. 独立式可执行程序.md)
