@@ -18,3 +18,4 @@ riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 bit_field = "0.9"
 lazy_static = { version = "1.3", features = ["spin_no_std"] }
 spin = "0.3"
+bitmap-allocator = { git = "https://github.com/rcore-os/bitmap-allocator" }

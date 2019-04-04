@@ -1,10 +1,8 @@
-mod bit_allocator;
-
-use bit_allocator::{BitAlloc4K, BitAlloc};
+use bitmap_allocator::{BitAlloc4K, BitAlloc};
+use crate::consts::*;
 use lazy_static::*;
 use spin::Mutex;
 use riscv::addr::*;
-use crate::consts::*;
 
 // 物理页帧分配器
 lazy_static! {
