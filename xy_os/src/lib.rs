@@ -13,3 +13,4 @@ mod interrupt;
 mod init;
 mod clock;
 mod memory;
+mod consts;
