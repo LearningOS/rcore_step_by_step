@@ -6,7 +6,7 @@
 
 - [GitHub](https://github.com/LearningOS/rcore_step_by_step)
 
-- [GitBook](https://github.com/LearningOS/rcore_step_by_step)
+- [GitBook](https://xy-plus.gitbook.io/rcore-step-by-step)
 
 - [知乎专栏](https://zhuanlan.zhihu.com/c_1086573713289347072)
 
