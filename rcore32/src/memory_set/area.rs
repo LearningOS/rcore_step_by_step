@@ -1,7 +1,6 @@
 use alloc::boxed::Box;
 use crate::memory::paging::{ActivePageTable, PageRange,};
 use super::{attr::MemoryAttr, handler::MemoryHandler, };
-use riscv::addr::*;
 use crate::consts::PAGE_SIZE;
 
 #[derive(Debug,Clone)]

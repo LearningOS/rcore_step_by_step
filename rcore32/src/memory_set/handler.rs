@@ -1,4 +1,4 @@
-use crate::memory::paging::{PageEntry, ActivePageTable};
+use crate::memory::paging::ActivePageTable;
 use super::attr::MemoryAttr;
 use core::fmt::Debug;
 use alloc::boxed::Box;

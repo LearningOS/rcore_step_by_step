@@ -19,6 +19,7 @@ mod clock;
 mod memory;
 mod consts;
 mod memory_set;
+mod drivers;
 
 use buddy_system_allocator::LockedHeap;
 #[global_allocator]
