@@ -124,8 +124,8 @@ __alltraps:
     SAVE_ALL
     mv a0, sp
     jal rust_trap
-    .globl __trapret
-__trapret:
+    .globl trap_return
+trap_return:
     RESTORE_ALL
     # return from supervisor call
     XRET

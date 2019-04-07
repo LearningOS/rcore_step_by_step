@@ -4,6 +4,7 @@
 #![feature(global_asm)]
 #![feature(alloc)]
 #![no_std]
+#![feature(naked_functions)]
 
 #[macro_use]
 mod io;
@@ -20,6 +21,7 @@ mod memory;
 mod consts;
 mod memory_set;
 mod drivers;
+mod process;
 
 use buddy_system_allocator::LockedHeap;
 #[global_allocator]
