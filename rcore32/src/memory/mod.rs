@@ -131,3 +131,8 @@ fn remap_kernel(dtb : usize) {
         memset.activate();
     }
 }
+
+use riscv::register::satp;
+pub fn current_root() -> usize {
+    satp::read().bits()
+}
