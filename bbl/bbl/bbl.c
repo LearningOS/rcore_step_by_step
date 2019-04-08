@@ -46,11 +46,11 @@ static pte_t root_table[1 << RISCV_PGLEVEL_BITS] __attribute__((aligned(RISCV_PG
 // only used for Sv48 systems, to map 0xFFFF_FFFF_C000_0000 to 0x8000_0000.
 static pte_t p3_table[1 << RISCV_PGLEVEL_BITS] __attribute__((aligned(RISCV_PGSIZE)));
 
-static void setup_page_table_sv32()
+static void setup_page_table_sv32(uintptr_t dtb)
 {
   // map kernel [0x300..] 0x80000000 -> 0xC0000000..
   int i_end = dtb_output() / MEGAPAGE_SIZE;
-  for(int i=0x200; i<i_end; ++i) {
+  for(int i=0x200; i<i_end+1; ++i) {
     root_table[i + 0x100] = pte_create(i << RISCV_PGLEVEL_BITS, PTE_R | PTE_W | PTE_X);
   }
   // map recursive [0x3fd] (V), [0x3fe] (VRW), [0x3ff] (VRW)
@@ -147,7 +147,7 @@ void boot_loader(uintptr_t dtb)
 #endif
   entry_point += 0xffffffff40000000;
 #else
-  setup_page_table_sv32();
+  setup_page_table_sv32(dtb);
   entry_point += 0x40000000;
 #endif
 #endif
