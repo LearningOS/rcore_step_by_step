@@ -14,18 +14,16 @@ pub enum Status {
 
 
 pub struct Thread {
-    pub status : Status,    // 线程状态，包括就绪、运行、休眠、结束等
     pub context : Context,  // 线程相关的上下文
-    pub waiter : Option<Tid>, // 父线程的ｔｉｄ
+    pub kstack : KernelStack,   // 线程对应的内核栈
     pub proc : Option<Arc<Mutex<Process>>>,  // 线程对应的进程
 }
 
 impl Thread {
     pub unsafe fn new_init() -> Self {
         Thread {
-            status : Status::Ready,
             context : Context::null(),
-            waiter : None,
+            kstack : KernelStack::new(),
             proc : None,
         }
     }
@@ -33,9 +31,8 @@ impl Thread {
     pub unsafe fn new_kernel(entry : extern "C" fn(usize) -> !, arg : usize) -> Self {
         let kstack = KernelStack::new();
         Thread {
-            status : Status::Ready,
             context : Context::new_kernel_thread(entry, arg, kstack.top(), current_root()),
-            waiter : None,
+            kstack : kstack,
             proc : None,
         }
     }
