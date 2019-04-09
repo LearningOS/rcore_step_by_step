@@ -50,7 +50,7 @@ static void setup_page_table_sv32()
 {
   // map kernel [0x300..] 0x80000000 -> 0xC0000000..
   int i_end = dtb_output() / MEGAPAGE_SIZE;
-  for(int i=0x200; i<i_end; ++i) {
+  for(int i=0x200; i<=i_end; ++i) {
     root_table[i + 0x100] = pte_create(i << RISCV_PGLEVEL_BITS, PTE_R | PTE_W | PTE_X);
   }
   // map recursive [0x3fd] (V), [0x3fe] (VRW), [0x3ff] (VRW)
