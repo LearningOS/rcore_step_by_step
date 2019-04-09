@@ -14,3 +14,7 @@ mod init;
 mod clock;
 mod memory;
 mod consts;
+
+use buddy_system_allocator::LockedHeap;
+#[global_allocator]
+static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
