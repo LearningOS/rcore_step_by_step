@@ -63,7 +63,7 @@ justrun: build
 debug: $(kernel) $(bin)
 	@qemu-system-$(arch) $(qemu_opts) -s -S &
 	@sleep 1
-	@$(gdb) $(kernel) -x ../tools/gdbinit
+	@$(gdb) $(kernel) -x src/tools/gdbinit
 
 build: $(bin)
 

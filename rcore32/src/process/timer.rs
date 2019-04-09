@@ -23,10 +23,10 @@ impl Timer {
         }
     }
 
-    fn push(&mut self, action : Action, time : usize) {
-    }
+    //fn push(&mut self, action : Action, time : usize) {
+    //}
 
-    fn tick(&self) -> Option<Event> {
-        self.tick += 1;
-    }
+    //fn tick(&self) {
+        //self.tick += 1;
+    //}
 }

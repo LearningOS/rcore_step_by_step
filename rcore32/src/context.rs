@@ -67,7 +67,6 @@ impl ContextContent {
 }
 
 #[derive(Debug)]
-#[repr(C)]
 pub struct Context {
     sp : usize // 上下文内容存储的位置
 }
@@ -131,7 +130,7 @@ impl Context {
         : : : : "volatile" )
     }
 
-    pub unsafe fn null() -> Self {
+    pub const unsafe fn null() -> Self {
         Context { sp : 0 }  
     }
 

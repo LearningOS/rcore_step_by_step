@@ -73,15 +73,15 @@ _save_context:
 .macro RESTORE_ALL
     LOAD s1, 32             # s1 = sstatus
     LOAD s2, 33             # s2 = sepc
-    TEST_BACK_TO_KERNEL
+    andi s0, s1, 1 << 8     # sstatus.SPP = 1
     bnez s0, _restore_context   # s0 = back to kernel?
 _save_kernel_sp:
     addi s0, sp, 36*XLENB
-    csrw (xscratch), s0         # sscratch = kernel-sp
+    csrw sscratch, s0         # sscratch = kernel-sp
 _restore_context:
     # restore sstatus, sepc
-    csrw (xstatus), s1
-    csrw (xepc), s2
+    csrw sstatus, s1
+    csrw sepc, s2
 
     # restore x registers except x2 (sp)
     LOAD x1, 1

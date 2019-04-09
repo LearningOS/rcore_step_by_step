@@ -1,5 +1,5 @@
-use alloc::{ vec::Vec, sync::Arc};
-use crate::context::Context;
+use alloc::{ vec::Vec, sync::Arc, boxed::Box};
+pub use crate::context::Context;
 use super::{KernelStack, Tid, Pid, ExitCode};
 use crate::memory::current_root;
 
@@ -20,33 +20,31 @@ pub struct Thread {
 }
 
 impl Thread {
-    pub unsafe fn new_init() -> Self {
-        Thread {
+    pub unsafe fn new_init() -> Box<Thread> {
+        Box::new(Thread {
             context : Context::null(),
             kstack : KernelStack::new(),
             proc : None,
-        }
+        })
     }
 
-    pub unsafe fn new_kernel(entry : extern "C" fn(usize) -> !, arg : usize) -> Self {
+    pub unsafe fn new_kernel(entry : extern "C" fn(usize) -> !, arg : usize) -> Box<Thread> {
         let kstack = KernelStack::new();
-        Thread {
-            context : Context::new_kernel_thread(entry, arg, kstack.top(), current_root()),
+        Box::new(Thread {
+            context : Context::new_kernel_thread(entry, arg, kstack.top(), current_root()) ,
             kstack : kstack,
             proc : None,
-        }
+        })
     }
 
     pub unsafe fn switch_to(&mut self, target : &mut Thread) {
         self.context.switch(&mut target.context);
     }
+
+    pub fn test(&self) {
+        println!("hello thread");
+    }
 }
 
 pub struct Process {
-    //vm : MemorySet,
-
-    //pub pid : Pid,
-    //pub parent : Option<Arc<Mutex<Process>>>,
-    //pub children : Vec<Weak<Mutex<Process>>>,
-    //pub threads : Vec<Tid>,
 }

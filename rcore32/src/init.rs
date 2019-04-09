@@ -7,10 +7,9 @@ use crate::process::init as process_init;
 #[no_mangle]
 pub extern "C" fn rust_main(hartid : usize, dtb : usize) -> ! {
     println!("Hello RISCV ! in hartid {}, dtb @ {:#x} ", hartid, dtb);
-
-    interrupt_init();
     memory_init(dtb);
-    process_init();
+    interrupt_init();
     clock_init();
+    process_init();
     loop{}
 }
