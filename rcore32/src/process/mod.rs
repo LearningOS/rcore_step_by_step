@@ -14,12 +14,20 @@ static THREADPOOL : ThreadPool = ThreadPool::new();
 
 pub fn init() {
     println!("+------ now to initialize process ------+");
-    let scheduler = RRScheduler::new(10);
+    let scheduler = RRScheduler::new(1);
     unsafe{
         THREADPOOL.init(10, scheduler);
     }
-    let mut hello_thread = unsafe{ Thread::new_kernel(hello_thread, 5) };
-    THREADPOOL.add(hello_thread);
+    let mut thread0 = unsafe{ Thread::new_kernel(hello_thread, 0) };
+    THREADPOOL.add(thread0);
+    let mut thread1 = unsafe{ Thread::new_kernel(hello_thread, 1) };
+    THREADPOOL.add(thread1);
+    let mut thread2 = unsafe{ Thread::new_kernel(hello_thread, 2) };
+    THREADPOOL.add(thread2);
+    let mut thread3 = unsafe{ Thread::new_kernel(hello_thread, 3) };
+    THREADPOOL.add(thread3);
+    let mut thread4 = unsafe{ Thread::new_kernel(hello_thread, 4) };
+    THREADPOOL.add(thread4);
     THREADPOOL.run();
 }
 
@@ -27,10 +35,11 @@ use riscv::register::{scause::Scause, sstatus, sstatus::Sstatus};
 use riscv::register::sie;
 #[no_mangle]
 pub extern "C" fn hello_thread(_arg : usize) -> ! {
-    for i in 0.._arg {
-        println!("hello thread");
-    }
+    //for i in 0.._arg {
+        //println!("hello thread");
+    //}
     loop{
+        println!("this is thread {}", _arg);
         //println!("hello thread");
     }
 }

@@ -84,7 +84,6 @@ impl ThreadPool{
         println!("a tick in thread pool !");
         let mut inner = self.inner();
         if inner.scheduler.tick() {
-            println!("here i guess");
             unsafe{
                 inner
                     .current
@@ -109,7 +108,9 @@ impl ThreadPool{
                     if let Some(mut thread) = info.thread.take() {
                         inner.current = Some((tid, thread));
                         unsafe{ inner.idle.switch_to(&mut *inner.current.as_mut().unwrap().1);}
-                        inner.scheduler.push(tid);
+                        let (old_tid, old_thread) = inner.current.take().unwrap();
+                        info.thread = Some(old_thread);
+                        inner.scheduler.push(old_tid);
                     }
                 }
             }else{

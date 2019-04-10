@@ -40,13 +40,13 @@ impl RRScheduler {
 impl Scheduler for RRScheduler{
     fn push(&mut self, tid : Tid) {
         let tid = tid + 1;
-        println!("tid {}, len {}", tid, self.threads.len());
+        //println!("tid {}, len {}", tid, self.threads.len());
         if tid + 1 > self.threads.len() {
             self.threads.resize_with(tid + 1, Default::default);
         }
-        println!("tid {}, len {}", tid, self.threads.len());
+        //println!("tid {}, len {}", tid, self.threads.len());
 
-        println!("tid {}, time {}", tid, self.threads[tid].time);
+        //println!("tid {}, time {}", tid, self.threads[tid].time);
         if self.threads[tid].time == 0 {
             self.threads[tid].time = self.max_time;
         }
