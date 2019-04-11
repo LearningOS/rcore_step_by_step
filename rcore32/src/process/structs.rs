@@ -1,10 +1,11 @@
-use alloc::{ vec::Vec, sync::Arc, boxed::Box};
+use alloc::{ sync::Arc, boxed::Box};
 pub use crate::context::Context;
-use super::{KernelStack, Tid, Pid, ExitCode};
+use super::{KernelStack, Tid, ExitCode};
 use crate::memory::current_root;
 
 use spin::Mutex;
 
+#[derive(Clone)]
 pub enum Status {
     Ready,
     Running(Tid),
@@ -39,10 +40,6 @@ impl Thread {
 
     pub unsafe fn switch_to(&mut self, target : &mut Thread) {
         self.context.switch(&mut target.context);
-    }
-
-    pub fn test(&self) {
-        println!("hello thread");
     }
 }
 

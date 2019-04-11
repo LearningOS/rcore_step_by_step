@@ -76,9 +76,7 @@ fn super_timer() {
     clock_set_next_event(); 
     unsafe{
         TICK = TICK + 1;
-        if TICK % 100 == 0 {
-            tick();
-        }
+        tick();
     }
 }
 

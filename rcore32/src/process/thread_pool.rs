@@ -1,11 +1,8 @@
-use alloc::{ vec::Vec, boxed::Box, sync::Arc};
-use core::{ cell::UnsafeCell, };
-use spin::{Mutex, MutexGuard};
+use alloc::{ vec::Vec, boxed::Box,};
 use super::structs::*;
-use super::timer::Timer;
-use super::scheduler::{ Scheduler, RRScheduler};
+use super::timer::{ Timer, Action};
+use super::scheduler::Scheduler;
 use super::Tid;
-use super::interrupt::*;
 
 struct ThreadInfo {
    status : Status,
@@ -14,113 +11,108 @@ struct ThreadInfo {
    thread : Option<Box<Thread>>,
 }
 
-struct ThreadPoolInner {
-    threads: Vec<Mutex<Option<ThreadInfo>>>,    // 线程信号量的向量
-    scheduler: Box<Scheduler>,      //　线程调度器
-    timer: Mutex<Timer>,     // 时钟
-    idle : Box<Thread>,
-    current : Option<(Tid, Box<Thread>)>,
-}
-
-unsafe impl Sync for ThreadPool {}
-
 pub struct ThreadPool {
-    inner : UnsafeCell<Option<ThreadPoolInner>>,
+    threads: Vec<Option<ThreadInfo>>,    // 线程信号量的向量
+    scheduler: Box<Scheduler>,      //　线程调度器
+    timer: Box<Timer>,     // 时钟
 }
 
 impl ThreadPool{
-    pub const fn new() -> Self {
-        ThreadPool {
-            inner : UnsafeCell::new(None),
-        }
-    }
 
-    pub unsafe fn init(&self, size : usize, scheduler : impl Scheduler + 'static){
-        *self.inner.get() = Some(ThreadPoolInner {
+    pub fn new(size : usize, scheduler : impl Scheduler + 'static) -> Self{
+        ThreadPool {
             threads : {
                 let mut th = Vec::new();
                 th.resize_with(size, Default::default);
                 th
             },
-            scheduler: Box::new(scheduler),
-            timer : Mutex::new(Timer::new()),
-            idle : Thread::new_init(),
-            current : None,
-        })
+            scheduler : Box::new(scheduler),
+            timer : Box::new(Timer::new()),
+        }
     }
 
-    fn inner(&self) -> &mut ThreadPoolInner {
-        unsafe { &mut *self.inner.get() }
-            .as_mut()
-            .expect("ThreadPool is not initialized")
-    }
-
-    fn alloc_tid(&self) -> (Tid, MutexGuard<Option<ThreadInfo>>) {
-        let inner = self.inner();
-        for (i, proc) in inner.threads.iter().enumerate() {
-            let thread = proc.lock();
-            if thread.is_none() {
-                return (i, thread);
+    fn alloc_tid(&self) -> Tid {
+        for (i, info) in self.threads.iter().enumerate() {
+            if info.is_none() {
+                return i;
             }
         }
-        panic!("fault !");
+        panic!("alloc tid failed !");
     }
 
-    pub fn add(&self, _thread : Box<Thread>) {
-        let (tid, mut thread) = self.alloc_tid();
-        *thread = Some(ThreadInfo{
+    pub fn add(&mut self, _thread : Box<Thread>) {
+        let tid = self.alloc_tid();
+        self.threads[tid] = Some(ThreadInfo{
             status : Status::Ready,
             next_status : Status::Ready,
             waiter : None,
             thread : Some(_thread),
         });
-        self.inner().scheduler.push(tid);
+        self.scheduler.push(tid);
         println!("the tid to alloc : {}", tid);
     }
 
-    pub fn tick(&self) {
+    pub fn tick(&mut self) -> bool{
         // 增加ｔｉｍｅｒ中的计时
-        // 通知调度器时钟周期加一，询问是否需要调度
-        println!("a tick in thread pool !");
-        let mut inner = self.inner();
-        if inner.scheduler.tick() {
-            unsafe{
-                inner
-                    .current
-                    .as_mut()
-                    .unwrap()
-                    .1
-                    .switch_to(&mut inner.idle);
-            }
+        self.timer.tick();
+        while let Some(action) = self.timer.pop() {
+            println!("now in the while");
+            match action {
+                Action::Wakeup(tid) => {
+                    self.set_status(tid, Status::Ready);
+                    println!("wakeup {}", tid);
+                },
+            };
         }
+        // 通知调度器时钟周期加一，询问是否需要调度
+        self.scheduler.tick()
     }
 
-    pub fn run(&self) -> !{
-        let inner = self.inner();
-        unsafe{
-            disable_and_store();
+    pub(crate) fn sleep(&mut self, tid : Tid, time : usize) {
+        let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
+        proc.next_status = Status::Sleeping;
+        self.timer.push(Action::Wakeup(tid), time);
+    }
+
+    fn set_status(&mut self, tid : Tid, status : Status) {  // 还需要完善
+        let mut info = self.threads[tid].as_mut().expect(" failed to get info");
+        match status {
+            Status::Ready => match info.status {
+                Status::Running(_) => info.next_status = status,
+                _ => {
+                    info.status = status;
+                    self.scheduler.push(tid);
+                    println!("{} is push into scheduler", tid);
+                },
+            },
+            _ => match info.status {
+                Status::Running(_) => info.next_status = status,
+                _ => info.status = status,
+            },
+        };
+    }
+
+    pub fn retrieve(&mut self, tid : Tid, thread : Box<Thread> ) {
+        let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
+        proc.thread = Some(thread);
+        proc.status = proc.next_status.clone();
+        proc.next_status = Status::Ready;
+        match proc.status {
+            Status::Ready => {
+                self.scheduler.push(tid);
+            },
+            _ => {},
         }
-        loop{
-            if let Some(tid) = inner.scheduler.pop() {
-                println!("{} : next tid to run", tid);
-                let mut info_lock = inner.threads[tid].lock();
-                if let info = info_lock.as_mut().unwrap() {
-                    if let Some(mut thread) = info.thread.take() {
-                        inner.current = Some((tid, thread));
-                        unsafe{ inner.idle.switch_to(&mut *inner.current.as_mut().unwrap().1);}
-                        let (old_tid, old_thread) = inner.current.take().unwrap();
-                        info.thread = Some(old_thread);
-                        inner.scheduler.push(old_tid);
-                    }
-                }
-            }else{
-                unsafe{
-                    enable_and_wfi();
-                }
-                unsafe{
-                    disable_and_store();
-                }
-            }
+        // set the state for stoped thread
+    }
+
+    pub fn acquire(&mut self) -> Option<(Tid, Box<Thread>)> {
+        if let Some(tid) = self.scheduler.pop() {
+            let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
+            proc.status = Status::Running(tid);
+            return Some((tid, proc.thread.take().expect("thread does not exit ")));
+        }else{
+            return None;
         }
     }
 }

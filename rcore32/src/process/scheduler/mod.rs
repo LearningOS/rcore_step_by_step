@@ -1,5 +1,5 @@
 use super::Tid;
-use alloc::{collections::VecDeque, vec::Vec,};
+use alloc::vec::Vec;
 
 pub trait Scheduler {
     fn push(&mut self, tid : Tid) ;
@@ -19,6 +19,7 @@ struct RRInfo {
 pub struct RRScheduler {
     threads : Vec<RRInfo>,
     max_time : usize,
+    current : usize,
 }
 
 impl RRScheduler {
@@ -26,6 +27,7 @@ impl RRScheduler {
         let mut rr = RRScheduler{
             threads : Vec::default(),
             max_time : max_time_slice,
+            current : 0,
         };
         rr.threads.push(RRInfo {
             valid : false,
@@ -40,13 +42,10 @@ impl RRScheduler {
 impl Scheduler for RRScheduler{
     fn push(&mut self, tid : Tid) {
         let tid = tid + 1;
-        //println!("tid {}, len {}", tid, self.threads.len());
         if tid + 1 > self.threads.len() {
             self.threads.resize_with(tid + 1, Default::default);
         }
-        //println!("tid {}, len {}", tid, self.threads.len());
 
-        //println!("tid {}, time {}", tid, self.threads[tid].time);
         if self.threads[tid].time == 0 {
             self.threads[tid].time = self.max_time;
         }
@@ -69,6 +68,7 @@ impl Scheduler for RRScheduler{
             self.threads[ret].prev = 0;
             self.threads[ret].next = 0;
             self.threads[ret].valid = false;
+            self.current = ret;
             Some(ret-1)
         }else{
             None
@@ -76,17 +76,18 @@ impl Scheduler for RRScheduler{
     }
 
     fn tick(&mut self) -> bool{
-        let tid = self.threads[0].next;
+        let tid = self.current;
+        //println!("tick in scheduler, tid : {}", tid -1);
         if tid != 0 {
             self.threads[tid].time -= 1;
             if self.threads[tid].time == 0 {
-                println!("tick a 0, the tid is {}", tid);
+                //println!("tick a 0, the tid is {}", tid - 1);
                 return true;
+            }else{
+                return false;
             }
-        }else{
-            return true;
         }
-        false
+        return true;
     }
 
     fn set_priority(&self, tid : Tid, priority : u8) {

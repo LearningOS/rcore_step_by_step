@@ -3,44 +3,43 @@ mod thread_pool;
 mod timer;
 mod structs;
 mod scheduler;
+mod processor;
 
 use self::structs::Thread;
-use super::memory::{ paging::active_table, };
 use self::thread_pool::ThreadPool;
 use self::scheduler::RRScheduler;
-use spin::Mutex;
+use self::processor::Processor;
+use alloc::boxed::Box;
 
-static THREADPOOL : ThreadPool = ThreadPool::new();
+static CPU : Processor = Processor::new();
 
 pub fn init() {
     println!("+------ now to initialize process ------+");
     let scheduler = RRScheduler::new(1);
+    let thread_pool = ThreadPool::new(100, scheduler);
     unsafe{
-        THREADPOOL.init(10, scheduler);
+        CPU.init(Thread::new_init(), Box::new(thread_pool));
     }
-    let mut thread0 = unsafe{ Thread::new_kernel(hello_thread, 0) };
-    THREADPOOL.add(thread0);
-    let mut thread1 = unsafe{ Thread::new_kernel(hello_thread, 1) };
-    THREADPOOL.add(thread1);
-    let mut thread2 = unsafe{ Thread::new_kernel(hello_thread, 2) };
-    THREADPOOL.add(thread2);
-    let mut thread3 = unsafe{ Thread::new_kernel(hello_thread, 3) };
-    THREADPOOL.add(thread3);
-    let mut thread4 = unsafe{ Thread::new_kernel(hello_thread, 4) };
-    THREADPOOL.add(thread4);
-    THREADPOOL.run();
+    let thread0 = unsafe{ Thread::new_kernel(hello_thread, 0) };
+    CPU.add_thread(thread0);
+    let thread1 = unsafe{ Thread::new_kernel(hello_thread, 1) };
+    CPU.add_thread(thread1);
+    let thread2 = unsafe{ Thread::new_kernel(hello_thread, 2) };
+    CPU.add_thread(thread2);
+    let thread3 = unsafe{ Thread::new_kernel(hello_thread, 3) };
+    CPU.add_thread(thread3);
+    let thread4 = unsafe{ Thread::new_kernel(hello_thread, 4) };
+    CPU.add_thread(thread4);
+    CPU.run();
 }
 
-use riscv::register::{scause::Scause, sstatus, sstatus::Sstatus};
-use riscv::register::sie;
 #[no_mangle]
 pub extern "C" fn hello_thread(_arg : usize) -> ! {
-    //for i in 0.._arg {
-        //println!("hello thread");
-    //}
+    if _arg == 1 {
+        CPU.sleep(100);
+    }
     loop{
-        println!("this is thread {}", _arg);
-        //println!("hello thread");
+        //println!("this is thread {}", _arg);
     }
 }
 
@@ -79,5 +78,13 @@ pub type Tid = usize;
 pub type Pid = usize;
 
 pub fn tick() {
-    THREADPOOL.tick();
+    CPU.tick();
 }
+
+//pub(crate) fn current_tid() -> Tid {
+    //THREADPOOL.current_tid()
+//}
+
+//pub fn sleep(time : usize) {
+    //THREADPOOL.sleep(current_tid(), time);
+//}

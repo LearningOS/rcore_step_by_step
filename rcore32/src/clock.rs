@@ -24,8 +24,8 @@ fn get_cycle() -> u64 {
 }
 
 //按照当前时刻加上频率的1%，设定下一次时钟中断发生的时间点
-static timebase : u32 = 100000;
+static TIMEBASE : u32 = 100000;
 use crate::sbi::set_timer;
 pub fn clock_set_next_event() {
-    set_timer(get_cycle() + timebase as u64);
+    set_timer(get_cycle() + TIMEBASE as u64);
 }
