@@ -3,6 +3,15 @@
 #   LOAD
 #   STORE
 
+.equ XLENB,     4
+.equ XLENb,     32
+.macro LOAD a1, a2
+    lw \a1, \a2*XLENB(sp)
+.endm
+.macro STORE a1, a2
+    sw \a1, \a2*XLENB(sp)
+.endm
+
 .macro SAVE_ALL
     # If coming from userspace, preserve the user stack pointer and load
     # the kernel stack pointer. If we came from the kernel, sscratch

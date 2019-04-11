@@ -2,16 +2,6 @@ use crate::context::TrapFrame;
 use crate::memory::{do_pgfault, PageFault};
 use riscv::register::{stvec, sstatus};
 
-global_asm!(r"
-    .equ XLENB,     4
-    .equ XLENb,     32
-    .macro LOAD a1, a2
-        lw \a1, \a2*XLENB(sp)
-    .endm
-    .macro STORE a1, a2
-        sw \a1, \a2*XLENB(sp)
-    .endm
-");
 global_asm!(include_str!("trap/trap.asm"));
 
 #[no_mangle]
