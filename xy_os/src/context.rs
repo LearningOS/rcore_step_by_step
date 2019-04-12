@@ -53,11 +53,11 @@ struct ContextContent {
 use core::mem::zeroed;
 impl ContextContent {
     fn new_kernel_thread(entry: extern "C" fn(usize) -> !, arg: usize , kstack_top: usize, satp: usize) -> ContextContent {
-        let mut temp_content: ContextContent = unsafe { zeroed() };
-        temp_content.ra = entry as usize;
-        temp_content.satp = satp;
-        temp_content.s[0] = arg;
-        temp_content
+        let mut content: ContextContent = unsafe { zeroed() };
+        content.ra = entry as usize;
+        content.satp = satp;
+        content.s[0] = arg;
+        content
     }
 
     unsafe fn push_at(self, stack_top: usize) -> Context {

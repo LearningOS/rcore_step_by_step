@@ -38,7 +38,6 @@ const STACK_SIZE: usize = 0x8000;
 
 use alloc::alloc::{alloc, dealloc, Layout};
 impl KernelStack {
-
     pub fn new() -> KernelStack {
         let bottom =
             unsafe {
@@ -46,7 +45,13 @@ impl KernelStack {
             } as usize;
         KernelStack(bottom)
     }
+    
+    pub fn top(&self) -> usize {
+        self.0 + STACK_SIZE
+    }
+}
 
+impl Drop for KernelStack {
     fn drop(&mut self) {
         unsafe {
             dealloc(
@@ -55,9 +60,4 @@ impl KernelStack {
             );
         }
     }
-
-    pub fn top(&self) -> usize {
-        self.0 + STACK_SIZE
-    }
-
 }
