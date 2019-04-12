@@ -85,10 +85,11 @@ impl Thread {
 
         let kstack = KernelStack::new();
         Box::new(Thread{
-            context : Context::new_user_thread(entry_addr, 0, kstack.top(), vm.token()),
+            context : Context::new_user_thread(entry_addr, ustack_top, kstack.top(), vm.token()),
             kstack : kstack,
             proc : None,
         })
+        //Box::new(Thread::new_user(entry_addr, ustack_top, kstack.top(), vm.token()))
     }
 
     pub unsafe fn switch_to(&mut self, target : &mut Thread) {

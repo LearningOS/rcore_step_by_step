@@ -53,6 +53,7 @@ pub extern "C" fn rust_trap(tf:&mut TrapFrame) {
     match tf.scause.cause() {
         Trap::Exception(Exception::Breakpoint) => breakpoint(),
         //Trap::Exception(Exception::MachineEnvCall) => machine_ecall(),
+        Trap::Exception(Exception::UserEnvCall) => syscall(tf),
         Trap::Exception(Exception::LoadPageFault) => do_pgfault(tf, PageFault::LoadPageFault),
         Trap::Exception(Exception::StorePageFault) => do_pgfault(tf, PageFault::StorePageFault),
         Trap::Exception(Exception::InstructionPageFault) => do_pgfault(tf, PageFault::InstructionPageFault),
@@ -81,4 +82,22 @@ fn super_timer() {
 }
 
 fn machine_ecall() {
+}
+
+pub const SYS_READ: usize = 63;
+pub const SYS_WRITE: usize = 64;
+
+fn syscall(tf : &mut TrapFrame) {
+    //println!("a syscall !");
+    tf.sepc += 4;
+    match tf.x[17] {
+        SYS_READ => {
+        },
+        SYS_WRITE => {
+            print!("{}", tf.x[10] as u8 as char);
+        },
+        _ => {
+            println!("unknown user syscall !");
+        }
+    };
 }

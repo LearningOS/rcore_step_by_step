@@ -47,7 +47,7 @@ pub fn init() {
     let user = unsafe{ Thread::new_user(data) };
 
     let shell_thread = unsafe{ Thread::new_kernel(hello_thread, 4) };
-    CPU.add_thread(shell_thread);
+    //CPU.add_thread(shell_thread);
     CPU.add_thread(user);
     CPU.run();
 }

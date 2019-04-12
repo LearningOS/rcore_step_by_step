@@ -73,7 +73,7 @@ impl Processor {
 
                 let (tid, thread) = inner.current.take().unwrap();
 
-                println!("{} ran just now", tid);
+                //println!("{} ran just now", tid);
 
                 inner.pool.retrieve(tid, thread);
             }else{
