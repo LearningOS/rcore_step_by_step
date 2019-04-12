@@ -10,10 +10,12 @@ kernel := target/$(target)/$(mode)/rcore32
 bin := target/$(target)/$(mode)/kernel.bin
 bbl_path := $(PWD)/../bbl
 
+usr_path := usr
+
 ### export environments ###
 export ARCH = $(arch)
 export SMP = $(smp)
-export SFSIMG = $(user_dir)/img/ucore-$(arch).img
+export SFSIMG = $(usr_path)/hello_rust
 # crate 'process' use this to set interrupt (MIE or SIE)
 
 ### qemu options ###

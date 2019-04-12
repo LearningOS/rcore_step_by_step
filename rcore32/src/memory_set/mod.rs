@@ -19,6 +19,17 @@ impl MemorySet {
         }
     }
 
+    pub fn new_kern() -> Self {
+        MemorySet{
+            areas : Vec::new(),
+            page_table : {
+                let mut table = InactivePageTable::new();
+                table.map_kernel();
+                table
+            },
+        }
+    }
+
     pub fn push(&mut self, start : usize, end : usize, attr : MemoryAttr, handler : impl MemoryHandler) {
         assert!(start <= end, "invalid memory area"); // 首地址应该小于末地址
         assert!(
@@ -31,7 +42,7 @@ impl MemorySet {
             Box::new(handler),
             attr
         );
-        self.page_table.edit(|pt| area.map(pt));
+        self.page_table.edit(|pt| area.map(pt));    // 需要按需分配的map
         self.areas.push(area);
     }
 
@@ -44,5 +55,13 @@ impl MemorySet {
 
     pub unsafe fn activate(&self) {
         self.page_table.activate();
+    }
+
+    pub unsafe fn with(&self, f: impl FnOnce()) {
+        self.page_table.with(f);
+    }
+
+    pub fn token(&self) -> usize {
+        self.page_table.token()
     }
 }

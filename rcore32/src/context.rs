@@ -59,6 +59,25 @@ impl ContextContent {
         }
     }
 
+    fn new_user_thread(entry : usize, arg : usize , kstack_top : usize, satp : usize) -> Self {
+        ContextContent{
+            ra : trap_return as usize,
+            satp,
+            s : [0;12],
+            tf : {
+                let mut tf: TrapFrame = unsafe { zeroed() };
+                tf.x[10] = arg; // 存放第一个参数的寄存器a0
+                tf.x[2] = kstack_top;   // 栈顶ｓｐ
+                tf.sepc = entry;   // sepc在调用sret之后将被被赋值给ＰＣ
+                tf.sstatus = sstatus::read();
+                tf.sstatus.set_spie(true);
+                tf.sstatus.set_sie(false);
+                tf.sstatus.set_spp(sstatus::SPP::User);   // 代表sret之后的特权级仍为Ｓ
+                tf
+            },
+        }
+    }
+
     unsafe fn push_at(self, stack_top : usize) -> Context {
         let ptr = (stack_top as *mut Self).sub(1); //real kernel stack top
         *ptr = self;
@@ -141,5 +160,14 @@ impl Context {
         satp : usize
     ) -> Self {
         ContextContent::new_kernel_thread(entry, arg, kstack_top, satp).push_at(kstack_top)
+    }
+
+    pub unsafe fn new_user_thread(
+        entry: usize,
+        arg : usize,
+        kstack_top : usize,
+        satp : usize
+    ) -> Self {
+        ContextContent::new_user_thread(entry, arg, kstack_top, satp).push_at(kstack_top)
     }
 }

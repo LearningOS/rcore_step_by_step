@@ -38,5 +38,25 @@ impl Linear {
         }
     }
 }
-                   
 
+#[derive(Debug,Clone)]
+pub struct ByFrame;
+
+use crate::memory::frame_alloc::alloc_frame;
+impl MemoryHandler for ByFrame {
+    fn box_clone(&self) -> Box<MemoryHandler> {
+        Box::new(self.clone())
+    }
+
+    fn map(&self, pt: &mut ActivePageTable, addr: usize, attr: &MemoryAttr) {
+        let target = alloc_frame().expect("failed to allocate frame").start_address().as_usize();
+        let entry = pt.map(addr, target);
+        attr.apply(entry);
+    }
+}
+
+impl ByFrame {
+    pub fn new() -> Self {
+        ByFrame {}
+    }
+}

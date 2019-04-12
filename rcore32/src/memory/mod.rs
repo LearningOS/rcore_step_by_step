@@ -1,4 +1,4 @@
-mod frame_alloc;
+pub mod frame_alloc;
 pub mod paging;
 
 use riscv::register::sstatus;

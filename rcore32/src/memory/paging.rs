@@ -178,7 +178,7 @@ impl InactivePageTable {
         }
     }
 
-    fn token(&self) -> usize {
+    pub fn token(&self) -> usize {
         self.root_frame.number() | (1 << 31) // as satp
     }
 
@@ -235,6 +235,45 @@ impl InactivePageTable {
 
             ret
         })
+    }
+
+    pub unsafe fn with<T>(&self, f: impl FnOnce() -> T) -> T {
+        let old_token = Self::active_token();
+        let new_token = self.token();
+        println!("switch table {:x?} -> {:x?}", old_token, new_token);
+        if old_token != new_token {
+            Self::set_token(new_token);
+            Self::flush_tlb();
+        }
+        let ret = f();
+        println!("switch table {:x?} -> {:x?}", new_token, old_token);
+        if old_token != new_token {
+            Self::set_token(old_token);
+            Self::flush_tlb();
+        }
+        ret
+    }
+
+    pub fn map_kernel(&mut self) {
+        let table = unsafe { &mut *ROOT_PAGE_TABLE };
+        extern "C" {
+            fn start();
+            fn end();
+        }
+        let mut entrys: [PageTableEntry; 16] = unsafe { core::mem::uninitialized() };
+        let entry_start = start as usize >> 22;
+        let entry_end = (end as usize >> 22) + 1;
+        let entry_count = entry_end - entry_start;
+        for i in 0..entry_count {
+            entrys[i] = table[entry_start + i];
+        }
+
+        self.edit(|_| {
+            // NOTE: 'table' now refers to new page table
+            for i in 0..entry_count {
+                table[entry_start + i] = entrys[i];
+            }
+        });
     }
 }
 
