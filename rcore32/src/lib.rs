@@ -22,6 +22,7 @@ mod consts;
 mod memory_set;
 mod drivers;
 mod process;
+mod fs;
 
 use buddy_system_allocator::LockedHeap;
 #[global_allocator]

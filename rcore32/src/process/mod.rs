@@ -44,12 +44,12 @@ pub fn init() {
             _user_img_end as usize - _user_img_start as usize,
         )
     };
-    let user = unsafe{ Thread::new_user(data) };
+    //let user = unsafe{ Thread::new_user(data) };
 
     let shell_thread = unsafe{ Thread::new_kernel(hello_thread, 4) };
     CPU.add_thread(shell_thread);
     //CPU.add_thread(user);
-    CPU.run();
+    //CPU.run();
 }
 
 #[no_mangle]

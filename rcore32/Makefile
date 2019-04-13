@@ -15,7 +15,7 @@ usr_path := usr
 ### export environments ###
 export ARCH = $(arch)
 export SMP = $(smp)
-export SFSIMG = $(usr_path)/hello_rust
+export SFSIMG = $(usr_path)/try
 # crate 'process' use this to set interrupt (MIE or SIE)
 
 ### qemu options ###
@@ -58,6 +58,7 @@ clean:
 	@cargo clean
 
 run: build justrun
+	@echo $(SFSIMG)
 
 justrun: build
 	@qemu-system-riscv32 $(qemu_opts)
