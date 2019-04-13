@@ -20,4 +20,4 @@ lazy_static = { version = "1.3", features = ["spin_no_std"] }
 spin = "0.3"
 device_tree = { git = "https://github.com/xy-plus/device_tree-rs" }
 buddy-allocator = { git = "https://github.com/xy-plus/buddy-allocator" }
-RoundRobinScheduler = { git  = "https://github.com/xy-plus/RoundRobinScheduler" }
+RoundRobinScheduler = { git = "https://github.com/xy-plus/RoundRobinScheduler" }
