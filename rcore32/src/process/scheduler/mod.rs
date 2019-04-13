@@ -1,12 +1,13 @@
 use super::Tid;
 use alloc::vec::Vec;
+use spin::Mutex;
 
 pub trait Scheduler {
-    fn push(&mut self, tid : Tid) ;
-    fn pop(&mut self) -> Option<Tid>;
-    fn tick(&mut self) -> bool;
+    fn push(&self, tid : Tid) ;
+    fn pop(&self) -> Option<Tid>;
+    fn tick(&self) -> bool;
     fn set_priority(&self, tid : Tid, priority : u8);
-    fn exit(&mut self, tid : Tid);
+    fn exit(&self, tid : Tid);
 }
 
 #[derive(Default)]
@@ -17,15 +18,46 @@ struct RRInfo {
     next : Tid,
 }
 
-pub struct RRScheduler {
+struct RRSchedulerInner {
     threads : Vec<RRInfo>,
     max_time : usize,
     current : usize,
 }
 
+pub struct RRScheduler {
+    inner : Mutex<RRSchedulerInner>,
+}
+
+impl Scheduler for RRScheduler {
+    fn push(&self, tid : Tid) {
+        self.inner.lock().push(tid);
+    }
+    fn pop(&self) -> Option<Tid> {
+        self.inner.lock().pop()
+    }
+    fn tick(&self) -> bool {
+        self.inner.lock().tick()
+    }
+    fn set_priority(&self, tid : Tid, priority : u8) {
+        self.inner.lock().set_priority(tid, priority);
+    }
+    fn exit(&self, tid : Tid) {
+        self.inner.lock().exit(tid);
+    }
+}
+
 impl RRScheduler {
     pub fn new(max_time_slice : usize) -> Self {
-        let mut rr = RRScheduler{
+        RRScheduler {
+            inner : Mutex::new(RRSchedulerInner::new(max_time_slice)),
+        }
+    }
+
+}
+
+impl RRSchedulerInner {
+    pub fn new(max_time_slice : usize) -> Self {
+        let mut rr = RRSchedulerInner{
             threads : Vec::default(),
             max_time : max_time_slice,
             current : 0,
@@ -38,9 +70,7 @@ impl RRScheduler {
         });
         rr
     }
-}
 
-impl Scheduler for RRScheduler{
     fn push(&mut self, tid : Tid) {
         let tid = tid + 1;
         if tid + 1 > self.threads.len() {
@@ -78,17 +108,17 @@ impl Scheduler for RRScheduler{
 
     fn tick(&mut self) -> bool{
         let tid = self.current;
-        //println!("tick in scheduler, tid : {}", tid -1);
         if tid != 0 {
-            self.threads[tid].time -= 1;
+            if self.threads[tid].time > 0 {
+                self.threads[tid].time-= 1;
+            }
             if self.threads[tid].time == 0 {
-                //println!("tick a 0, the tid is {}", tid - 1);
                 return true;
             }else{
                 return false;
             }
         }
-        return true;
+        return false;
     }
 
     fn set_priority(&self, tid : Tid, priority : u8) {
@@ -96,6 +126,15 @@ impl Scheduler for RRScheduler{
     }
 
     fn exit(&mut self, tid : Tid) {
+        let tid = tid + 1;
+        if self.current == tid {
+            self.threads[tid].time = 0;
+            self.threads[tid].valid = false;
+            self.current = 0;
+        }
+    }
+
+    fn sleep(&mut self, tid : Tid) {
         let tid = tid + 1;
         if self.current == tid {
             self.current = 0;

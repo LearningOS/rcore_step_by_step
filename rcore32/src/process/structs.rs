@@ -1,6 +1,6 @@
 use alloc::{ sync::Arc, boxed::Box};
 pub use crate::context::Context;
-use super::{KernelStack, Tid, ExitCode};
+use super::{KernelStack, Tid, ExitCode, Pid};
 use crate::memory::{ current_root, frame_alloc::alloc_frames);
 use crate::memory_set::{ MemorySet, handler::ByFrame, attr::MemoryAttr};
 use crate::consts::PAGE_SIZE;
@@ -24,7 +24,7 @@ pub enum Status {
 pub struct Thread {
     pub context : Context,  // 线程相关的上下文
     pub kstack : KernelStack,   // 线程对应的内核栈
-    pub proc : Option<Arc<Mutex<Process>>>,  // 线程对应的进程
+    pub proc : Option<Arc<Process>>,  // 线程对应的进程
 }
 
 impl Thread {
@@ -85,7 +85,10 @@ impl Thread {
         Box::new(Thread{
             context : Context::new_user_thread(entry_addr, ustack_top, kstack.top(), vm.token()),
             kstack : kstack,
-            proc : None,
+            proc : Some(Arc::new(Process{
+                pid : None,
+                vm : Arc::new(vm),
+            })),
         })
     }
 
@@ -95,6 +98,8 @@ impl Thread {
 }
 
 pub struct Process {
+    pid : Option<Pid>,
+    vm : Arc<MemorySet>,
 }
 
 trait ElfExt {

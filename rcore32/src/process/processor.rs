@@ -44,18 +44,16 @@ impl Processor {
 
     pub fn tick(&self) {
         let inner = self.inner();
-        if !inner.current.is_none() {
-            if inner.pool.tick() {
-                unsafe{
-                    let flags = disable_and_store();
-                    inner
-                        .current
-                        .as_mut()
-                        .unwrap()
-                        .1
-                        .switch_to(&mut inner.idle);
-                    restore(flags);
-                }
+        if inner.pool.tick() && !inner.current.is_none() {
+            unsafe{
+                let flags = disable_and_store();
+                inner
+                    .current
+                    .as_mut()
+                    .unwrap()
+                    .1
+                    .switch_to(&mut inner.idle);
+                restore(flags);
             }
         }
     }
@@ -80,7 +78,7 @@ impl Processor {
                 unsafe{
                     enable_and_wfi();
                 }
-                println!("no thread to run");
+                //println!("no thread to run");
                 unsafe{
                     disable_and_store();
                 }
@@ -88,24 +86,31 @@ impl Processor {
         }
     }
 
-    //pub fn sleep(&self, time : usize) {
-        //let inner = self.inner();
-        //let tid = inner.current.as_ref().unwrap().0;
-        //println!("set tid {} to sleep", tid);
-        //inner.pool.sleep(tid, time);
-    //}
-
     pub fn exit(&self, code : usize) {
         let inner = self.inner();
         let tid = inner.current.as_ref().unwrap().0;
         inner.pool.exit(tid, code);
-        unsafe{
+        self.yield_now();
+    }
+
+    pub fn sleep(&self, time : usize) {
+        let inner = self.inner();
+        let tid = inner.current.as_ref().unwrap().0;
+        inner.pool.sleep(tid, time);
+        self.yield_now();
+    }
+
+    pub fn yield_now(&self) {
+        let inner = self.inner();
+        unsafe {
+            let flags = disable_and_store(); // 禁止中断，获取当前ｓｓｔａｔｕｓ的状态并保存。
             inner
                 .current
                 .as_mut()
                 .unwrap()
                 .1
-                .switch_to(&mut inner.idle);
+                .switch_to(&mut *inner.idle);   // 转到ｉｄｌｅ线程执行
+            restore(flags);  // 使能中断，恢复ｓｓｔａｔｕｓ的状态
         }
     }
 }

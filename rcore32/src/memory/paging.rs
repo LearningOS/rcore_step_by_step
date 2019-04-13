@@ -95,7 +95,7 @@ impl ActivePageTable {
         self.get_entry(addr).expect("fail to get entry")
     }
 
-    fn unmap(&mut self, addr: usize) {
+    pub fn unmap(&mut self, addr: usize) {
         let page = Page::of_addr(VirtAddr::new(addr));
         let (_, flush) = self.0.unmap(page).unwrap();
         flush.flush();

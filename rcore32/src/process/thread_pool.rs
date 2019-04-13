@@ -55,12 +55,9 @@ impl ThreadPool{
         // 增加ｔｉｍｅｒ中的计时
         self.timer.tick();
         while let Some(action) = self.timer.pop() {
-            println!("now in the while");
             match action {
                 Action::Wakeup(tid) => {
-                    //self.set_status(tid, Status::Ready);
-                    self.scheduler.push(tid);
-                    println!("wakeup {}", tid);
+                    self.wakeup(tid);
                 },
             };
         }
@@ -68,18 +65,20 @@ impl ThreadPool{
         self.scheduler.tick()
     }
 
-    //pub(crate) fn sleep(&mut self, tid : Tid, time : usize) {
-        //let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
-        //proc.next_status = Status::Sleeping;
-        ////self.timer.push(Action::Wakeup(tid), time);
-    //}
-
     pub fn retrieve(&mut self, tid : Tid, thread : Box<Thread> ) {
         let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
         if proc.present {
-            proc.thread = Some(thread);
-            proc.status = Status::Ready;
-            self.scheduler.push(tid);
+            match proc.status {
+                Status::Sleeping => {
+                    proc.thread = Some(thread);
+                },
+                Status::Ready => {
+                    proc.thread = Some(thread);
+                    proc.status = Status::Ready;
+                    self.scheduler.push(tid);
+                },
+                _ => {},
+            }
         }
         // set the state for stoped thread
     }
@@ -103,5 +102,27 @@ impl ThreadPool{
         });
         self.scheduler.exit(tid);
         println!("exit code : {}", code);
+    }
+
+    pub fn sleep(&mut self, tid : Tid, time : usize) {
+        let proc = self.threads[tid].as_mut().expect("thread not exits");
+        if proc.present {
+            proc.status = Status::Sleeping;
+            self.timer.push(Action::Wakeup(tid), time);
+        }else{
+            panic!("try to sleep an null thread !");
+        }
+    }
+
+    fn wakeup(&mut self, tid : Tid) {
+        //println!("into wakeup");
+        let proc = self.threads[tid].as_mut().expect("thread not exits");
+        if proc.present {
+            proc.status = Status::Ready;
+            self.scheduler.push(tid);
+            //println!("wakeup {}", tid);
+        }else{
+            panic!("try to sleep an null thread !");
+        }
     }
 }

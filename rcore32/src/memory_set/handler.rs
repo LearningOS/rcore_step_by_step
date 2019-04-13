@@ -7,6 +7,7 @@ use alloc::boxed::Box;
 pub trait MemoryHandler : Debug + 'static{
     fn box_clone(&self) -> Box<MemoryHandler>;
     fn map(&self, pt : &mut ActivePageTable, addr : usize, attr : &MemoryAttr); 
+    fn unmap(&self, pt : &mut ActivePageTable, addr : usize);
 }
 
 impl Clone for Box<MemoryHandler> {
@@ -27,6 +28,10 @@ impl MemoryHandler for Linear {
 
     fn map(&self, pt : &mut ActivePageTable, addr : usize, attr : &MemoryAttr) {
         attr.apply(pt.map(addr, (addr as isize + self.offset) as usize));
+    }
+
+    fn unmap(&self, pt : &mut ActivePageTable, addr : usize) {
+        pt.unmap(addr);
     }
 
 }
@@ -52,6 +57,10 @@ impl MemoryHandler for ByFrame {
         let target = alloc_frame().expect("failed to allocate frame").start_address().as_usize();
         let entry = pt.map(addr, target);
         attr.apply(entry);
+    }
+
+    fn unmap(&self, pt : &mut ActivePageTable, addr : usize) {
+        pt.unmap(addr);
     }
 }
 

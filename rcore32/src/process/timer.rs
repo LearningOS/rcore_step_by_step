@@ -24,6 +24,7 @@ impl Timer {
     }
 
     pub fn push(&mut self, action : Action, time_after : usize) {
+        //println!("push a time_after {} {}", time_after, self.time);
         let time = self.time + time_after;
         let event = Event{ time : time , data : action, };
         let mut it = self.events.iter();
@@ -50,9 +51,9 @@ impl Timer {
 
     pub fn tick(&mut self) {
         self.time += 1;
-        if let Some(timer) = self.events.front() {
-            let current_time = self.time;
-            println!("current time {}, timer {}", current_time, timer.time);
-        }
+        //if let Some(timer) = self.events.front() {
+            //let current_time = self.time;
+            //println!("current time {}, timer {}", current_time, timer.time);
+        //}
     }
 }

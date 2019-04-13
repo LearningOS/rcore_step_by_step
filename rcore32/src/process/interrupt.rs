@@ -1,7 +1,11 @@
-
 #[inline(always)]
 pub unsafe fn enable_and_wfi() {    // 使能中断并等待中断
     asm!("csrsi sstatus, 1 << 1; wfi" :::: "volatile");
+}
+
+#[inline(always)]
+pub unsafe fn enable() {    // 使能中断并等待中断
+    asm!("csrsi sstatus, 1 << 1;" :::: "volatile");
 }
 
 #[inline(always)]

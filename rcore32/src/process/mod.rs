@@ -20,7 +20,7 @@ extern "C" {
 
 pub fn init() {
     println!("+------ now to initialize process ------+");
-    let scheduler = RRScheduler::new(1);
+    let scheduler = RRScheduler::new(50);
     let thread_pool = ThreadPool::new(100, scheduler);
     unsafe{
         CPU.init(Thread::new_init(), Box::new(thread_pool));
@@ -54,17 +54,14 @@ pub fn init() {
 
 #[no_mangle]
 pub extern "C" fn hello_thread(_arg : usize) -> ! {
-    //if _arg == 1 {
-        //CPU.sleep(100);
-    //}
-    //loop{
-        ////println!("this is thread {}", _arg);
-    //}
-    for i in 0..10 {
-        println!("{}", i);
+    loop{
+        println!("i wake up!");
+        sleep(100);
     }
-    CPU.exit(0);
-    loop{}
+}
+
+pub fn sleep(time : usize) {
+    CPU.sleep(time);
 }
 
 pub struct KernelStack(usize);
@@ -123,7 +120,7 @@ pub extern "C" fn shell(_arg: usize) -> ! {
         //// TODO: wait until process exits, or use user land shell completely
         ////unsafe { thread::JoinHandle::<()>::_of(pid) }.join().unwrap();
         //} else {
-            println!("Program not exist");
+            println!("Program {} not exist", name);
         //}
     }
 }
