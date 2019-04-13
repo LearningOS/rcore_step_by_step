@@ -1,5 +1,5 @@
 use riscv::register::{
-    sstatus::Sstatus,
+    sstatus::{ self, Sstatus } ,
     scause::Scause,
 };
 
@@ -57,6 +57,9 @@ impl ContextContent {
         content.ra = entry as usize;
         content.satp = satp;
         content.s[0] = arg;
+        let mut _sstatus = sstatus::read();
+        _sstatus.set_spp(sstatus::SPP::Supervisor); // 代表 sret 之后的特权级仍为 Ｓ
+        content.s[1] = _sstatus.bits();
         content
     }
 

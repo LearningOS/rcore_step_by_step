@@ -1,4 +1,14 @@
 use crate::context::Context;
+use crate::process::{ Tid, ExitCode };
+use alloc::boxed::Box;
+
+#[derive(Clone)]
+pub enum Status {
+    Ready,
+    Running(Tid),
+    Sleeping,
+    Exited(ExitCode),
+}
 
 pub struct Thread {
     context: Context, // 线程相关的上下文
@@ -7,22 +17,22 @@ pub struct Thread {
 
 use riscv::register::satp;
 impl Thread {
-    pub fn new_idle() -> Thread {
+    pub fn new_idle() -> Box<Thread> {
         unsafe {
-            Thread {
+            Box::new(Thread {
                 context: Context::null(),
                 kstack: KernelStack::new(),
-            }
+            })
         }
     }
 
-    pub fn new_kernel(entry: extern "C" fn(usize) -> !, arg: usize) -> Thread {
+    pub fn new_kernel(entry: extern "C" fn(usize) -> !, arg: usize) -> Box<Thread> {
         unsafe {
             let _kstack = KernelStack::new();
-            Thread {
+            Box::new(Thread {
                 context: Context::new_kernel_thread(entry, arg, _kstack.top(), satp::read().bits()),
                 kstack: _kstack,
-            }
+            })
         }
     }
 

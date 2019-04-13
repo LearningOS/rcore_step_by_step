@@ -10,13 +10,13 @@ pub fn init() {
     println!("++++setup timer !++++");
 }
 
-use riscv::register::{time, timeh};
+use riscv::register::{ time, timeh };
 fn get_cycle() -> u64 {
     loop {
         let hi = timeh::read();
         let lo = time::read();
         let tmp = timeh::read();
-        if (hi == tmp) {
+        if hi == tmp {
             return ((hi as u64) << 32) | (lo as u64);
         }
     }
