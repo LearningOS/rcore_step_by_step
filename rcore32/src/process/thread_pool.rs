@@ -6,7 +6,7 @@ use super::Tid;
 
 struct ThreadInfo {
    status : Status,
-   next_status : Status,
+   present : bool,
    waiter : Option<Tid>,
    thread : Option<Box<Thread>>,
 }
@@ -18,7 +18,6 @@ pub struct ThreadPool {
 }
 
 impl ThreadPool{
-
     pub fn new(size : usize, scheduler : impl Scheduler + 'static) -> Self{
         ThreadPool {
             threads : {
@@ -33,7 +32,7 @@ impl ThreadPool{
 
     fn alloc_tid(&self) -> Tid {
         for (i, info) in self.threads.iter().enumerate() {
-            if info.is_none() {
+            if info.is_none() || !info.as_ref().unwrap().present{
                 return i;
             }
         }
@@ -44,7 +43,7 @@ impl ThreadPool{
         let tid = self.alloc_tid();
         self.threads[tid] = Some(ThreadInfo{
             status : Status::Ready,
-            next_status : Status::Ready,
+            present : true,
             waiter : None,
             thread : Some(_thread),
         });
@@ -59,7 +58,8 @@ impl ThreadPool{
             println!("now in the while");
             match action {
                 Action::Wakeup(tid) => {
-                    self.set_status(tid, Status::Ready);
+                    //self.set_status(tid, Status::Ready);
+                    self.scheduler.push(tid);
                     println!("wakeup {}", tid);
                 },
             };
@@ -68,40 +68,18 @@ impl ThreadPool{
         self.scheduler.tick()
     }
 
-    pub(crate) fn sleep(&mut self, tid : Tid, time : usize) {
-        let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
-        proc.next_status = Status::Sleeping;
-        self.timer.push(Action::Wakeup(tid), time);
-    }
-
-    fn set_status(&mut self, tid : Tid, status : Status) {  // 还需要完善
-        let mut info = self.threads[tid].as_mut().expect(" failed to get info");
-        match status {
-            Status::Ready => match info.status {
-                Status::Running(_) => info.next_status = status,
-                _ => {
-                    info.status = status;
-                    self.scheduler.push(tid);
-                    println!("{} is push into scheduler", tid);
-                },
-            },
-            _ => match info.status {
-                Status::Running(_) => info.next_status = status,
-                _ => info.status = status,
-            },
-        };
-    }
+    //pub(crate) fn sleep(&mut self, tid : Tid, time : usize) {
+        //let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
+        //proc.next_status = Status::Sleeping;
+        ////self.timer.push(Action::Wakeup(tid), time);
+    //}
 
     pub fn retrieve(&mut self, tid : Tid, thread : Box<Thread> ) {
         let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
-        proc.thread = Some(thread);
-        proc.status = proc.next_status.clone();
-        proc.next_status = Status::Ready;
-        match proc.status {
-            Status::Ready => {
-                self.scheduler.push(tid);
-            },
-            _ => {},
+        if proc.present {
+            proc.thread = Some(thread);
+            proc.status = Status::Ready;
+            self.scheduler.push(tid);
         }
         // set the state for stoped thread
     }
@@ -114,5 +92,16 @@ impl ThreadPool{
         }else{
             return None;
         }
+    }
+
+    pub fn exit(&mut self, tid : Tid, code : usize) {
+        self.threads[tid] = Some(ThreadInfo{
+            status : Status::Ready,
+            present : false,
+            waiter : None,
+            thread : None,
+        });
+        self.scheduler.exit(tid);
+        println!("exit code : {}", code);
     }
 }

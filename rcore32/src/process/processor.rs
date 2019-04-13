@@ -80,6 +80,7 @@ impl Processor {
                 unsafe{
                     enable_and_wfi();
                 }
+                println!("no thread to run");
                 unsafe{
                     disable_and_store();
                 }
@@ -87,10 +88,24 @@ impl Processor {
         }
     }
 
-    pub fn sleep(&self, time : usize) {
+    //pub fn sleep(&self, time : usize) {
+        //let inner = self.inner();
+        //let tid = inner.current.as_ref().unwrap().0;
+        //println!("set tid {} to sleep", tid);
+        //inner.pool.sleep(tid, time);
+    //}
+
+    pub fn exit(&self, code : usize) {
         let inner = self.inner();
         let tid = inner.current.as_ref().unwrap().0;
-        println!("set tid {} to sleep", tid);
-        inner.pool.sleep(tid, time);
+        inner.pool.exit(tid, code);
+        unsafe{
+            inner
+                .current
+                .as_mut()
+                .unwrap()
+                .1
+                .switch_to(&mut inner.idle);
+        }
     }
 }

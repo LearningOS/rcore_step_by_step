@@ -47,8 +47,8 @@ pub fn init() {
     let user = unsafe{ Thread::new_user(data) };
 
     let shell_thread = unsafe{ Thread::new_kernel(hello_thread, 4) };
-    //CPU.add_thread(shell_thread);
-    CPU.add_thread(user);
+    CPU.add_thread(shell_thread);
+    //CPU.add_thread(user);
     CPU.run();
 }
 
@@ -57,9 +57,14 @@ pub extern "C" fn hello_thread(_arg : usize) -> ! {
     //if _arg == 1 {
         //CPU.sleep(100);
     //}
-    loop{
-        //println!("this is thread {}", _arg);
+    //loop{
+        ////println!("this is thread {}", _arg);
+    //}
+    for i in 0..10 {
+        println!("{}", i);
     }
+    CPU.exit(0);
+    loop{}
 }
 
 pub struct KernelStack(usize);
@@ -99,14 +104,6 @@ pub type Pid = usize;
 pub fn tick() {
     CPU.tick();
 }
-
-//pub(crate) fn current_tid() -> Tid {
-    //THREADPOOL.current_tid()
-//}
-
-//pub fn sleep(time : usize) {
-    //THREADPOOL.sleep(current_tid(), time);
-//}
 
 pub extern "C" fn shell(_arg: usize) -> ! {
     let mut history = Vec::new();

@@ -6,6 +6,7 @@ pub trait Scheduler {
     fn pop(&mut self) -> Option<Tid>;
     fn tick(&mut self) -> bool;
     fn set_priority(&self, tid : Tid, priority : u8);
+    fn exit(&mut self, tid : Tid);
 }
 
 #[derive(Default)]
@@ -92,5 +93,12 @@ impl Scheduler for RRScheduler{
 
     fn set_priority(&self, tid : Tid, priority : u8) {
 
+    }
+
+    fn exit(&mut self, tid : Tid) {
+        let tid = tid + 1;
+        if self.current == tid {
+            self.current = 0;
+        }
     }
 }

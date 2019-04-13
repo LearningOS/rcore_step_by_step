@@ -46,8 +46,6 @@ impl Thread {
     }
 
     pub unsafe fn new_user(data : &[u8]) -> Box<Thread> 
-    //where 
-        //Iter = Iterator<Item = &'a str>,
     {
         let elf = ElfFile::new(data).expect("failed to read elf");
         let is32 = match elf.header.pt2 {
@@ -89,7 +87,6 @@ impl Thread {
             kstack : kstack,
             proc : None,
         })
-        //Box::new(Thread::new_user(entry_addr, ustack_top, kstack.top(), vm.token()))
     }
 
     pub unsafe fn switch_to(&mut self, target : &mut Thread) {
@@ -173,7 +170,6 @@ trait ToMemoryAttr {
 impl ToMemoryAttr for Flags {
     fn to_attr(&self) -> MemoryAttr {
         let mut flags = MemoryAttr::new().set_user();
-        // FIXME: handle readonly
         if self.is_execute() {
             flags = flags.set_execute();
         }
