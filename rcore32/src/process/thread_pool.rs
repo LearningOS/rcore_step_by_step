@@ -8,7 +8,7 @@ struct ThreadInfo {
    status : Status,
    present : bool,
    waiter : Option<Tid>,
-   thread : Option<Box<Thread>>,
+   thread : Option<Thread>,
 }
 
 pub struct ThreadPool {
@@ -39,7 +39,7 @@ impl ThreadPool{
         panic!("alloc tid failed !");
     }
 
-    pub fn add(&mut self, _thread : Box<Thread>) {
+    pub fn add(&mut self, _thread : Thread) {
         let tid = self.alloc_tid();
         self.threads[tid] = Some(ThreadInfo{
             status : Status::Ready,
@@ -65,7 +65,7 @@ impl ThreadPool{
         self.scheduler.tick()
     }
 
-    pub fn retrieve(&mut self, tid : Tid, thread : Box<Thread> ) {
+    pub fn retrieve(&mut self, tid : Tid, thread : Thread ) {
         let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
         if proc.present {
             match proc.status {
@@ -83,7 +83,7 @@ impl ThreadPool{
         // set the state for stoped thread
     }
 
-    pub fn acquire(&mut self) -> Option<(Tid, Box<Thread>)> {
+    pub fn acquire(&mut self) -> Option<(Tid, Thread)> {
         if let Some(tid) = self.scheduler.pop() {
             let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
             proc.status = Status::Running(tid);

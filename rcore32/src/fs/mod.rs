@@ -1,37 +1,52 @@
+use alloc::{sync::Arc, vec::Vec};
+
+use rcore_fs::vfs::*;
+use rcore_fs_sfs::SimpleFileSystem;
+use lazy_static::*;
+
 mod device;
-mod structs;
+pub mod file_handle;
 
-use device::{ Device, MemBuf };
-use structs::*;
-use spin::RwLock;
-use alloc::sync::Arc;
+lazy_static! {
+    /// The root of file system
+    pub static ref ROOT_INODE: Arc<INode> = {
+        let device = {
+            extern {
+                fn _user_img_start();
+                fn _user_img_end();
+            }
+            // 将存储磁盘文件的内存范围初始化为虚拟磁盘Membuf
+            Arc::new(unsafe { device::MemBuf::new(_user_img_start, _user_img_end) })
+        };
 
-pub struct SimpleFileSystem {
-    super_block : RwLock<SuperBlock>,
+        let sfs = SimpleFileSystem::open(device).expect("failed to open SFS");
+        sfs.root_inode()
+    };
 }
 
-impl SimpleFileSystem {
-    pub fn open(device: Arc<Device>) -> Option<Arc<Self>> {
-        let super_block = device.load_struct::<SuperBlock>(BLKN_SUPER).unwrap();
-        if !super_block.check() {   // 检查超级块是否格式正确
-            println!("super block check failed !");
-        }
+pub const FOLLOW_MAX_DEPTH: usize = 1;
 
-        Some(Arc::new(SimpleFileSystem {
-            super_block: RwLock::new(super_block),
-        }))
+pub trait INodeExt {
+    fn read_as_vec(&self) -> Result<Vec<u8>>;
+}
+
+impl INodeExt for INode {
+    fn read_as_vec(&self) -> Result<Vec<u8>> {
+        let size = self.metadata()?.size;
+        let mut buf = Vec::with_capacity(size);
+        unsafe {
+            buf.set_len(size);
+        }
+        self.read_at(0, buf.as_mut_slice())?;
+        Ok(buf)
     }
 }
 
 pub fn init() {
-    let device = {
-        extern "C"{
-            fn _user_img_start();
-            fn _user_img_end();
-        }
-        // 将存储磁盘文件的内存范围初始化为虚拟磁盘Membuf
-        Arc::new(unsafe { MemBuf::new(_user_img_start , _user_img_end ) })
-    };
-
-    let sfs = SimpleFileSystem::open(device).expect("failed to open SFS");
+    // 打印当前目录下的所有项的名字
+    let mut id = 0;
+    while let Ok(name) = ROOT_INODE.get_entry(id) {
+        id += 1;
+        println!("{}", name);
+    }
 }

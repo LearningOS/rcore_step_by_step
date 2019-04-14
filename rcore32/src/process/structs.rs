@@ -1,9 +1,12 @@
-use alloc::{ sync::Arc, boxed::Box};
+use alloc::{ sync::Arc, boxed::Box, collections::BTreeMap, string::String};
 pub use crate::context::Context;
 use super::{KernelStack, Tid, ExitCode, Pid};
 use crate::memory::{ current_root, frame_alloc::alloc_frames);
 use crate::memory_set::{ MemorySet, handler::ByFrame, attr::MemoryAttr};
 use crate::consts::PAGE_SIZE;
+use crate::fs::{ file_handle::FileHandle, ROOT_INODE};
+use rcore_fs::vfs::{ INode, };
+
 
 use spin::Mutex;
 use xmas_elf::{
@@ -90,6 +93,8 @@ impl Thread {
             proc : Some(Arc::new(Process{
                 pid : None,
                 vm : Arc::new(vm),
+                files : BTreeMap::new(),
+                cwd : String::from("/"),
             })),
         })
     }
@@ -102,6 +107,31 @@ impl Thread {
 pub struct Process {
     pid : Option<Pid>,
     vm : Arc<MemorySet>,
+    files : BTreeMap<usize, FileHandle>,
+    cwd : String,
+}
+
+pub const FOLLOW_MAX_DEPTH : usize = 1;
+
+impl Process {
+    // 根据文件描述符返回文件句柄
+    pub fn get_file_handle(&mut self, fd : usize) -> Option<&mut FileHandle> {
+        self.files.get_mut(&fd)
+    }
+
+    // 根据路径名称查找inode
+    pub fn lookup_inode(&self, path: &str) -> Option<Arc<INode>> {
+        if let Ok(current) = ROOT_INODE.lookup(&self.cwd) {
+            if let Ok(inode) = current.lookup_follow(path, FOLLOW_MAX_DEPTH) {
+                return Some(inode);
+            }
+        }
+        None
+    }
+
+    pub fn get_free_fd(&self) -> usize {
+        (0..).find(|i| !self.files.contains_key(i)).unwrap()
+    }
 }
 
 trait ElfExt {

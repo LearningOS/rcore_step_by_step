@@ -1,4 +1,4 @@
-use alloc::{ boxed::Box,};
+use alloc::{ boxed::Box, sync::Arc};
 use core::{ cell::UnsafeCell, };
 use super::interrupt::*;
 use super::structs::*;
@@ -113,4 +113,9 @@ impl Processor {
             restore(flags);  // 使能中断，恢复ｓｓｔａｔｕｓ的状态
         }
     }
+
+    pub fn context(&self) -> &Thread {
+        &*self.inner().current.as_ref().unwrap().1
+    }
+
 }

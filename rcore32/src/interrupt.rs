@@ -90,14 +90,20 @@ pub const SYS_WRITE: usize = 64;
 fn syscall(tf : &mut TrapFrame) {
     //println!("a syscall !");
     tf.sepc += 4;
-    match tf.x[17] {
-        SYS_READ => {
-        },
-        SYS_WRITE => {
-            print!("{}", tf.x[10] as u8 as char);
-        },
-        _ => {
-            println!("unknown user syscall !");
-        }
-    };
+    //match tf.x[17] {
+        //SYS_READ => {
+        //},
+        //SYS_WRITE => {
+            //print!("{}", tf.x[10] as u8 as char);
+        //},
+        //_ => {
+            //println!("unknown user syscall !");
+        //}
+    //};
+    let ret = crate::syscall::syscall(
+        tf.x[17],
+        [tf.x[10], tf.x[11], tf.x[12]],
+        tf,
+    );
+    tf.x[10] = ret as usize;
 }

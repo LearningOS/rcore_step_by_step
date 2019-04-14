@@ -19,6 +19,14 @@ impl SuperBlock {
     }
 }
 
+#[repr(C)]
+pub struct DiskINode {
+    pub size : u32,
+    pub _type : u16,
+    pub nlinks : u16,
+    
+}
+
 pub const MAGIC: u32 = 0x2f8dbe2a;
 pub const BLKN_SUPER : usize = 0;
 

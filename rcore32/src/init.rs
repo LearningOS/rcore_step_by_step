@@ -11,7 +11,7 @@ pub extern "C" fn rust_main(hartid : usize, dtb : usize) -> ! {
     memory_init(dtb);
     interrupt_init();
     clock_init();
-    fs_init();
+    //fs_init();
     process_init();
     loop{}
 }

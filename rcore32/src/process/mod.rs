@@ -5,11 +5,11 @@ mod structs;
 mod scheduler;
 mod processor;
 
-use self::structs::Thread;
+use self::structs::{ Thread, Process};
 use self::thread_pool::ThreadPool;
 use self::scheduler::RRScheduler;
 use self::processor::Processor;
-use alloc::{boxed::Box, vec::Vec, string::String};
+use alloc::{boxed::Box, vec::Vec, string::String, sync::Arc};
 
 static CPU : Processor = Processor::new();
 
@@ -44,12 +44,12 @@ pub fn init() {
             _user_img_end as usize - _user_img_start as usize,
         )
     };
-    //let user = unsafe{ Thread::new_user(data) };
+    let user = unsafe{ Thread::new_user(data) };
 
     let shell_thread = unsafe{ Thread::new_kernel(hello_thread, 4) };
-    CPU.add_thread(shell_thread);
-    //CPU.add_thread(user);
-    //CPU.run();
+    //CPU.add_thread(shell_thread);
+    CPU.add_thread(user);
+    CPU.run();
 }
 
 #[no_mangle]
@@ -59,6 +59,14 @@ pub extern "C" fn hello_thread(_arg : usize) -> ! {
         sleep(100);
     }
 }
+
+pub fn process() -> Arc<Process> {
+    use core::mem::transmute;
+    let process: &mut Thread = unsafe { transmute(CPU.context()) };
+    process.proc.clone()
+}
+
+
 
 pub fn sleep(time : usize) {
     CPU.sleep(time);
@@ -99,7 +107,7 @@ pub type Tid = usize;
 pub type Pid = usize;
 
 pub fn tick() {
-    CPU.tick();
+    //CPU.tick();
 }
 
 pub extern "C" fn shell(_arg: usize) -> ! {
