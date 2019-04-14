@@ -15,7 +15,8 @@ usr_path := usr
 ### export environments ###
 export ARCH = $(arch)
 export SMP = $(smp)
-export SFSIMG = $(usr_path)/hello_rust
+export SFSIMG = $(usr_path)/try
+export HELLO = $(usr_path)/hello_rust
 # crate 'process' use this to set interrupt (MIE or SIE)
 
 ### qemu options ###

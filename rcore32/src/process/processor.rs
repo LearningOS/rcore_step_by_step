@@ -114,8 +114,8 @@ impl Processor {
         }
     }
 
-    pub fn context(&self) -> &Thread {
-        &*self.inner().current.as_ref().unwrap().1
+    pub fn context(&self) -> &mut Thread {
+        &mut *self.inner().current.as_mut().unwrap().1
     }
 
 }

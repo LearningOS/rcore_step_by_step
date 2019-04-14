@@ -28,3 +28,15 @@ _user_img_start:
 _user_img_end:
 "#
 ));
+global_asm!(concat!(
+    r#"
+	.section .data
+	.global _user_program_start
+	.global _user_program_end
+_user_program_start:
+    .incbin ""#,
+    env!("HELLO"),
+    r#""
+_user_program_end:
+"#
+));

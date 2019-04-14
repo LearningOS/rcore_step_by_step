@@ -14,8 +14,8 @@ use alloc::{boxed::Box, vec::Vec, string::String, sync::Arc};
 static CPU : Processor = Processor::new();
 
 extern "C" {
-    fn _user_img_start();
-    fn _user_img_end();
+    fn _user_program_start();
+    fn _user_program_end();
 }
 
 pub fn init() {
@@ -35,13 +35,13 @@ pub fn init() {
     //CPU.add_thread(thread3);
     //let thread4 = unsafe{ Thread::new_kernel(hello_thread, 4) };
     //CPU.add_thread(thread4);
-    println!("the user img from {:#x} to {:#x}", 
-             _user_img_start as usize, _user_img_end as usize);
+    //println!("the user img from {:#x} to {:#x}", 
+             //_user_img_start as usize, _user_img_end as usize);
 
     let data = unsafe{
         ::core::slice::from_raw_parts(
-            _user_img_start as *const u8,
-            _user_img_end as usize - _user_img_start as usize,
+            _user_program_start as *const u8,
+            _user_program_end as usize - _user_program_start as usize,
         )
     };
     let user = unsafe{ Thread::new_user(data) };
@@ -60,10 +60,10 @@ pub extern "C" fn hello_thread(_arg : usize) -> ! {
     }
 }
 
-pub fn process() -> Arc<Process> {
+pub fn process() -> &'static mut Box<Process> {
     use core::mem::transmute;
-    let process: &mut Thread = unsafe { transmute(CPU.context()) };
-    process.proc.clone()
+    let process: &mut Thread = CPU.context();
+    process.proc.as_mut().unwrap()
 }
 
 

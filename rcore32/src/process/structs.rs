@@ -27,7 +27,7 @@ pub enum Status {
 pub struct Thread {
     pub context : Context,  // 线程相关的上下文
     pub kstack : KernelStack,   // 线程对应的内核栈
-    pub proc : Option<Arc<Process>>,  // 线程对应的进程
+    pub proc : Option<Box<Process>>,  // 线程对应的进程
 }
 
 impl Thread {
@@ -90,7 +90,7 @@ impl Thread {
         Box::new(Thread{    // 注意下面创建上下文使用的是哪个栈
             context : Context::new_user_thread(entry_addr, ustack_top, kstack.top(), vm.token()),
             kstack : kstack,
-            proc : Some(Arc::new(Process{
+            proc : Some(Box::new(Process{
                 pid : None,
                 vm : Arc::new(vm),
                 files : BTreeMap::new(),
@@ -107,7 +107,7 @@ impl Thread {
 pub struct Process {
     pid : Option<Pid>,
     vm : Arc<MemorySet>,
-    files : BTreeMap<usize, FileHandle>,
+    pub files : BTreeMap<usize, FileHandle>,
     cwd : String,
 }
 
