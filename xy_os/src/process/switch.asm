@@ -42,6 +42,7 @@
     Load s11, 13*XLENB(sp)
     mv a0, s0
     csrw sstatus, s1
+    csrw sepc, s2
     addi sp, sp, (XLENB*14)
 
     Store zero, 0(a1)

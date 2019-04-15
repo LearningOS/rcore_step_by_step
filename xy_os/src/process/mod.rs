@@ -18,21 +18,24 @@ pub fn tick() {
     CPU.tick();
 }
 
+extern "C" {
+    fn _user_img_start();
+    fn _user_img_end();
+}
+
 pub fn init() {
     println!("+------ now to initialize process ------+");
-    let scheduler = Scheduler::new(1);
+    let scheduler = Scheduler::new(50);
     let thread_pool = ThreadPool::new(100, scheduler);
     CPU.init(Thread::new_idle(), Box::new(thread_pool));
-    let thread0 = Thread::new_kernel(hello_thread, 0);
-    CPU.add_thread(thread0);
-    let thread1 = Thread::new_kernel(hello_thread, 1);
-    CPU.add_thread(thread1);
-    let thread2 = Thread::new_kernel(hello_thread, 2);
-    CPU.add_thread(thread2);
-    let thread3 = Thread::new_kernel(hello_thread, 3);
-    CPU.add_thread(thread3);
-    let thread4 = Thread::new_kernel(hello_thread, 4);
-    CPU.add_thread(thread4);
+    let data = unsafe{
+        ::core::slice::from_raw_parts(
+            _user_img_start as *const u8,
+            _user_img_end as usize - _user_img_start as usize,
+        )
+    };
+    let user = unsafe{ Thread::new_user(data) };
+    CPU.add_thread(user);
     CPU.run();
 }
 

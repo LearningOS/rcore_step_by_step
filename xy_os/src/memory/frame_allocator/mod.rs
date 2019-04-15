@@ -1,4 +1,4 @@
-use buddy_allocator::{BuddyAllocator, log2_down};
+use buddy_allocator::{ BuddyAllocator, log2_down };
 use crate::consts::*;
 use lazy_static::*;
 use spin::Mutex;
@@ -22,7 +22,7 @@ pub fn init(start: usize, lenth: usize) {
 }
 
 pub fn alloc_frame() -> Option<Frame> {
-        alloc_frames(1)
+    alloc_frames(1)
 }
 
 pub fn alloc_frames(size: usize) -> Option<Frame> {
@@ -36,7 +36,7 @@ pub fn alloc_frames(size: usize) -> Option<Frame> {
 }
 
 pub fn dealloc_frame(target: Frame) {
-        dealloc_frames(target, 1);
+    dealloc_frames(target, 1);
 }
 
 pub fn dealloc_frames(target: Frame, size: usize) {
@@ -49,12 +49,12 @@ pub fn dealloc_frames(target: Frame, size: usize) {
 
 pub fn test() {
     let frame1: Frame = alloc_frame().expect("failed to alloc frame");
-    println!("test frame_allocator : {:#x}", frame1.start_address().as_usize());
+    println!("test frame_allocator: {:#x}", frame1.start_address().as_usize());
     let frame2: Frame = alloc_frame().expect("failed to alloc frame");
-    println!("test frame_allocator : {:#x}", frame2.start_address().as_usize());
+    println!("test frame_allocator: {:#x}", frame2.start_address().as_usize());
     dealloc_frame(frame1);
     let frame3: Frame = alloc_frame().expect("failed to alloc frame");
-    println!("test frame_allocator : {:#x}", frame3.start_address().as_usize());
+    println!("test frame_allocator: {:#x}", frame3.start_address().as_usize());
     dealloc_frame(frame2);
     dealloc_frame(frame3);
 }

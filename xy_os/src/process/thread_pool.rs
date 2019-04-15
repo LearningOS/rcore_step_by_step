@@ -79,6 +79,6 @@ impl ThreadPool {
             thread: None,
         });
         self.scheduler.exit(tid);
-        println!("exit code : {}", code);
+        println!("exit code: {}", code);
     }
 }

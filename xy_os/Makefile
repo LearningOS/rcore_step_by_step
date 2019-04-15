@@ -3,6 +3,9 @@ bbl_path := $(abspath riscv-pk)
 mode := debug
 kernel := target/$(target)/$(mode)/xy_os
 bin := target/$(target)/$(mode)/kernel.bin
+usr_path := usr
+
+export SFSIMG = $(usr_path)/hello_rust
 
 .PHONY: all clean run build asm qemu kernel
 
@@ -28,6 +31,9 @@ kernel:
 
 asm:
 	@riscv64-unknown-elf-objdump -d $(kernel) | less
+
+header:
+	@riscv64-unknown-elf-objdump -h $(kernel)
 
 qemu:
 	qemu-system-riscv32 -kernel target/riscv32-xy_os/debug/kernel.bin -nographic -machine virt

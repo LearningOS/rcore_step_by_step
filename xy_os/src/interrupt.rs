@@ -43,7 +43,7 @@ fn super_timer() {
             println!("ticks 100!");
         }
     }
-    tick();
+    // tick();
 }
 
 fn breakpoint() {
@@ -68,7 +68,7 @@ pub fn disable_and_store() -> usize {    // 禁用中断并返回当前中断状
 }
 
 #[inline(always)]
-pub fn restore(flags : usize) {    // 根据 flag 设置中断
+pub fn restore(flags: usize) {    // 根据 flag 设置中断
     unsafe {
         asm!("csrs sstatus, $0" :: "r"(flags) :: "volatile");
     }

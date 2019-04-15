@@ -21,3 +21,5 @@ spin = "0.3"
 device_tree = { git = "https://github.com/xy-plus/device_tree-rs" }
 buddy-allocator = { git = "https://github.com/xy-plus/buddy-allocator" }
 RoundRobinScheduler = { git = "https://github.com/xy-plus/RoundRobinScheduler" }
+xmas-elf = "0.6"
+# memory_set = { git = "https://github.com/xy-plus/memory_set" }
