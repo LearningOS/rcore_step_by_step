@@ -16,7 +16,6 @@ usr_path := usr
 export ARCH = $(arch)
 export SMP = $(smp)
 export SFSIMG = $(usr_path)/rcore32.img
-#export HELLO = $(usr_path)/hello_rust
 # crate 'process' use this to set interrupt (MIE or SIE)
 
 ### qemu options ###
@@ -56,7 +55,8 @@ export CC=$(cc)
 all: kernel
 
 clean:
-	@cargo clean
+	@rm -rf target
+	@cd usr && make clean
 
 run: build justrun
 	@echo $(SFSIMG)
@@ -70,9 +70,10 @@ debug: $(kernel) $(bin)
 	@$(gdb) $(kernel) -x src/tools/gdbinit
 
 build: sfsimg $(bin) 
+	@echo $(bin)
 
 sfsimg:
-	@cd $(usr_path) && make clean && make
+	@cd $(usr_path) && make clean && make build
 
 $(bin): kernel
 	@mkdir -p target/$(target)/bbl && \

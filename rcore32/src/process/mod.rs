@@ -10,6 +10,7 @@ use self::thread_pool::ThreadPool;
 use self::scheduler::RRScheduler;
 use self::processor::Processor;
 use alloc::{boxed::Box, vec::Vec, string::String, sync::Arc};
+use super::fs::{ ROOT_INODE, INodeExt, };
 
 static CPU : Processor = Processor::new();
 
@@ -21,16 +22,16 @@ pub fn init() {
         CPU.init(Thread::new_init(), Box::new(thread_pool));
     }
 
-    //let data = unsafe{
-        //::core::slice::from_raw_parts(
-            //_user_program_start as *const u8,
-            //_user_program_end as usize - _user_program_start as usize,
-        //)
-    //};
-    //let user = unsafe{ Thread::new_user(data) };
+    let data = ROOT_INODE
+        .lookup("rust/hello_cargo")
+        .unwrap()
+        .read_as_vec()
+        .unwrap();
+    println!("size of program {:#x}", data.len());
+    let user = unsafe{ Thread::new_user(data.as_slice()) };
 
-    //CPU.add_thread(user);
-    //CPU.run();
+    CPU.add_thread(user);
+    CPU.run();
 }
 
 pub fn kmain() {

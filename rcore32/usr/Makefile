@@ -15,11 +15,12 @@ rust :
 	@cd rust && cargo xbuild $(cargo_args)
 	@rm -rf $(out_dir)/rust && mkdir -p $(out_dir)/rust
 	@echo $(out_dir)
+	@echo $(rust_bins)
 	@cp -r $(rust_bins) $(out_dir)/rust
 
 build : $(out_img)
 
-$(out_img) :
+$(out_img) : rust
 	@rcore-fs-fuse $@ $(out_dir) zip
 
 rcore-fs-fuse:
@@ -30,4 +31,5 @@ endif
 
 clean :
 	@rm -rf $(out_dir)
-	@cd rust && cargo clean
+	@cd rust && rm target -rf
+	@rm -f $(out_img)
