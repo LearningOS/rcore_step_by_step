@@ -15,8 +15,8 @@ usr_path := usr
 ### export environments ###
 export ARCH = $(arch)
 export SMP = $(smp)
-export SFSIMG = $(usr_path)/try
-export HELLO = $(usr_path)/hello_rust
+export SFSIMG = $(usr_path)/rcore32.img
+#export HELLO = $(usr_path)/hello_rust
 # crate 'process' use this to set interrupt (MIE or SIE)
 
 ### qemu options ###
@@ -69,7 +69,10 @@ debug: $(kernel) $(bin)
 	@sleep 1
 	@$(gdb) $(kernel) -x src/tools/gdbinit
 
-build: $(bin)
+build: sfsimg $(bin) 
+
+sfsimg:
+	@cd $(usr_path) && make clean && make
 
 $(bin): kernel
 	@mkdir -p target/$(target)/bbl && \
@@ -89,5 +92,4 @@ kernel:
 	@cargo xbuild $(build_args)
 
 docker:
-	#sudo docker run -it --mount type=bind,source=/home/pan/Code/rcore_step_by_step/,destination=/mnt rust_riscv bash
 	sudo docker run -it --mount type=bind,source=$(shell pwd)/..,destination=/mnt panqinglin/rust_riscv bash

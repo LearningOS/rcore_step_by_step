@@ -13,11 +13,6 @@ use alloc::{boxed::Box, vec::Vec, string::String, sync::Arc};
 
 static CPU : Processor = Processor::new();
 
-extern "C" {
-    fn _user_program_start();
-    fn _user_program_end();
-}
-
 pub fn init() {
     println!("+------ now to initialize process ------+");
     let scheduler = RRScheduler::new(50);
@@ -25,39 +20,21 @@ pub fn init() {
     unsafe{
         CPU.init(Thread::new_init(), Box::new(thread_pool));
     }
-    //let thread0 = unsafe{ Thread::new_kernel(hello_thread, 0) };
-    //CPU.add_thread(thread0);
-    //let thread1 = unsafe{ Thread::new_kernel(hello_thread, 1) };
-    //CPU.add_thread(thread1);
-    //let thread2 = unsafe{ Thread::new_kernel(hello_thread, 2) };
-    //CPU.add_thread(thread2);
-    //let thread3 = unsafe{ Thread::new_kernel(hello_thread, 3) };
-    //CPU.add_thread(thread3);
-    //let thread4 = unsafe{ Thread::new_kernel(hello_thread, 4) };
-    //CPU.add_thread(thread4);
-    //println!("the user img from {:#x} to {:#x}", 
-             //_user_img_start as usize, _user_img_end as usize);
 
-    let data = unsafe{
-        ::core::slice::from_raw_parts(
-            _user_program_start as *const u8,
-            _user_program_end as usize - _user_program_start as usize,
-        )
-    };
-    let user = unsafe{ Thread::new_user(data) };
+    //let data = unsafe{
+        //::core::slice::from_raw_parts(
+            //_user_program_start as *const u8,
+            //_user_program_end as usize - _user_program_start as usize,
+        //)
+    //};
+    //let user = unsafe{ Thread::new_user(data) };
 
-    let shell_thread = unsafe{ Thread::new_kernel(hello_thread, 4) };
-    //CPU.add_thread(shell_thread);
-    CPU.add_thread(user);
-    CPU.run();
+    //CPU.add_thread(user);
+    //CPU.run();
 }
 
-#[no_mangle]
-pub extern "C" fn hello_thread(_arg : usize) -> ! {
-    loop{
-        println!("i wake up!");
-        sleep(100);
-    }
+pub fn kmain() {
+    CPU.run();
 }
 
 pub fn process() -> &'static mut Box<Process> {
@@ -107,7 +84,7 @@ pub type Tid = usize;
 pub type Pid = usize;
 
 pub fn tick() {
-    //CPU.tick();
+    CPU.tick();
 }
 
 pub extern "C" fn shell(_arg: usize) -> ! {

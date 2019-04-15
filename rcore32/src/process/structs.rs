@@ -63,11 +63,6 @@ impl Thread {
             _ => panic!("ELF is not executable or shared object"),
         }
 
-        // 下面这个片段和文件系统的载入有关。现在不需要管。
-        if let Ok(load_path) = elf.get_interpreter() {
-            println!("loader specified as {}", &load_path);
-        }
-
         // entry_point代表程序入口在文件中的具体位置
         let entry_addr = elf.header.pt2.entry_point() as usize;
         println!("entry : {:#x}", entry_addr);
