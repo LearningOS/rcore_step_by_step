@@ -40,4 +40,18 @@ impl MemoryArea {
             attr : attr,
         }
     }
+
+    pub unsafe fn as_slice_mut(&self) -> &mut [u8] {
+        ::core::slice::from_raw_parts_mut(
+            self.start as *mut u8,
+            self.end - self.start,
+        )
+    }
+
+    pub unsafe fn as_slice(&self) -> &[u8] {
+        ::core::slice::from_raw_parts(
+            self.start as *mut u8,
+            self.end - self.start,
+        )
+    }
 }

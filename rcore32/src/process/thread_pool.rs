@@ -48,7 +48,7 @@ impl ThreadPool{
             thread : Some(_thread),
         });
         self.scheduler.push(tid);
-        println!("the tid to alloc : {}", tid);
+        //println!("the tid to alloc : {}", tid);
     }
 
     pub fn tick(&mut self) -> bool{
@@ -101,7 +101,7 @@ impl ThreadPool{
             thread : None,
         });
         self.scheduler.exit(tid);
-        println!("exit code : {}", code);
+        //println!("exit code : {}", code);
     }
 
     pub fn sleep(&mut self, tid : Tid, time : usize) {

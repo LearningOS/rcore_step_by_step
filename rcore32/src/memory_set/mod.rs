@@ -81,12 +81,19 @@ impl Drop for MemorySet {
 impl Clone for MemorySet {
     fn clone(&self) -> Self{
         let mut page_table = InactivePageTable::new();
+        //println!("token of pt {}", page_table.token());
         page_table.map_kernel();
         page_table.edit(|pt|{
             for area in self.areas.iter() {
                 area.map(pt);
             }
         });
+        for area in self.areas.iter() {
+            let data = Vec::<u8>::from(unsafe{ area.as_slice()});
+            unsafe{ 
+                page_table.with(||{ area.as_slice_mut().copy_from_slice(data.as_slice()) }
+            }
+        }
         MemorySet{
             areas : self.areas.clone(),
             page_table,

@@ -1,14 +1,11 @@
 use alloc::{ sync::Arc, boxed::Box, collections::BTreeMap, string::String};
-pub use crate::context::Context;
+pub use crate::context::{ Context, TrapFrame};
 use super::{KernelStack, Tid, ExitCode, Pid};
-use crate::memory::{ current_root, frame_alloc::alloc_frames);
+use crate::memory::{ current_root,);
 use crate::memory_set::{ MemorySet, handler::ByFrame, attr::MemoryAttr};
 use crate::consts::PAGE_SIZE;
 use crate::fs::{ file_handle::FileHandle, ROOT_INODE};
 use rcore_fs::vfs::{ INode, };
-
-
-use spin::Mutex;
 use xmas_elf::{
     header,
     program::{Flags, SegmentData, Type},
@@ -48,13 +45,8 @@ impl Thread {
         })
     }
 
-    pub unsafe fn new_user(data : &[u8]) -> Box<Thread> 
-    {
+    pub unsafe fn new_user(data : &[u8]) -> Box<Thread> {
         let elf = ElfFile::new(data).expect("failed to read elf");
-        let is32 = match elf.header.pt2 {
-            header::HeaderPt2::Header32(_) => true,
-            header::HeaderPt2::Header64(_) => false,
-        };
 
         // Check ELF type
         match elf.header.pt2.type_().as_type() {
@@ -71,7 +63,6 @@ impl Thread {
         use crate::consts::{USER_STACK_OFFSET, USER_STACK_SIZE};
         let mut ustack_top = {  // 创建用户栈
             let (ustack_buttom, ustack_top) = (USER_STACK_OFFSET, USER_STACK_OFFSET + USER_STACK_SIZE);
-            let paddr = alloc_frames(USER_STACK_SIZE / PAGE_SIZE).unwrap().start_address().as_usize();  // 这一行现在可以先留着，写文档暂时不用这一行
             vm.push(    // 创建一个内核栈之后还需要将这个内核栈装入虚存系统。
                 ustack_buttom,
                 ustack_top,
@@ -87,9 +78,28 @@ impl Thread {
             kstack : kstack,
             proc : Some(Box::new(Process{
                 pid : None,
-                vm : Arc::new(vm),
+                vm,
                 files : BTreeMap::new(),
                 cwd : String::from("/"),
+            })),
+        })
+    }
+
+    pub unsafe fn fork(&mut self, tf : &mut TrapFrame) -> Box<Thread> {
+        let proc = self.proc.as_mut().unwrap();
+        let kstack = KernelStack::new();
+        let vm : MemorySet = proc.vm.clone();
+        let cwd = proc.cwd.clone();
+        let files = proc.files.clone();
+        //println!("vm token : {}", vm.token());
+        Box::new(Thread{
+            context : Context::new_fork(tf, kstack.top(), vm.token()),
+            kstack,
+            proc : Some(Box::new(Process{
+                pid : None,
+                vm,
+                files,
+                cwd,
             })),
         })
     }
@@ -101,7 +111,7 @@ impl Thread {
 
 pub struct Process {
     pid : Option<Pid>,
-    vm : Arc<MemorySet>,
+    vm : MemorySet,
     pub files : BTreeMap<usize, FileHandle>,
     cwd : String,
 }

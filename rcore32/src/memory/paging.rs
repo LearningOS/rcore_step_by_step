@@ -153,8 +153,7 @@ impl InactivePageTable {
 
     pub fn map(&mut self, addr: usize, target: usize, flags : EF) {
         self.edit(|pt : &mut ActivePageTable|{
-            if let Some(entry) = pt.get_entry(addr) {
-            }else{
+            if pt.get_entry(addr).is_none() {
                 let entry = pt.map(addr, target);
                 entry.set_execute(flags.contains(EF::EXECUTABLE));
                 entry.set_writable(flags.contains(EF::WRITABLE));
@@ -171,7 +170,7 @@ impl InactivePageTable {
     pub unsafe fn activate(&self) {
         let old_token = Self::active_token();
         let new_token = self.token();
-        println!("switch table {:x?} -> {:x?}", old_token, new_token);
+        //println!("switch table {:x?} -> {:x?}", old_token, new_token);
         if old_token != new_token {
             Self::set_token(new_token);
             Self::flush_tlb();
@@ -240,13 +239,13 @@ impl InactivePageTable {
     pub unsafe fn with<T>(&self, f: impl FnOnce() -> T) -> T {
         let old_token = Self::active_token();
         let new_token = self.token();
-        println!("switch table {:x?} -> {:x?}", old_token, new_token);
+        //println!("switch table {:x?} -> {:x?}", old_token, new_token);
         if old_token != new_token {
             Self::set_token(new_token);
             Self::flush_tlb();
         }
         let ret = f();
-        println!("switch table {:x?} -> {:x?}", new_token, old_token);
+        //println!("switch table {:x?} -> {:x?}", new_token, old_token);
         if old_token != new_token {
             Self::set_token(old_token);
             Self::flush_tlb();

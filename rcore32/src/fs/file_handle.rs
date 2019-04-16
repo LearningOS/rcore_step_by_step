@@ -1,6 +1,5 @@
-use alloc::{string::String, sync::Arc};
-
-use rcore_fs::vfs::{FsError, INode, Metadata, Result};
+use alloc::{sync::Arc,};
+use rcore_fs::vfs::{INode,};
 
 #[derive(Clone)]
 pub struct FileHandle {

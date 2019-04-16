@@ -1,4 +1,4 @@
-use alloc::{ boxed::Box, sync::Arc};
+use alloc::{ boxed::Box,};
 use core::{ cell::UnsafeCell, };
 use super::interrupt::*;
 use super::structs::*;
@@ -72,7 +72,7 @@ impl Processor {
 
                 let (tid, thread) = inner.current.take().unwrap();
 
-                println!("{} ran just now", tid);
+                //println!("{} ran just now", tid);
 
                 inner.pool.retrieve(tid, thread);
             }else{

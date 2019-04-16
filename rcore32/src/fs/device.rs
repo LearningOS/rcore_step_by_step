@@ -1,5 +1,4 @@
 use spin::RwLock;
-use core::mem::uninitialized;
 use rcore_fs::dev::*;
 
 pub struct MemBuf(RwLock<&'static mut [u8]>);

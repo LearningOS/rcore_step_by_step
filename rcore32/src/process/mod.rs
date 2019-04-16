@@ -9,10 +9,10 @@ use self::structs::{ Thread, Process};
 use self::thread_pool::ThreadPool;
 use self::scheduler::RRScheduler;
 use self::processor::Processor;
-use alloc::{boxed::Box, vec::Vec, string::String, sync::Arc};
+use alloc::{boxed::Box, vec::Vec, string::String,};
 use super::fs::{ ROOT_INODE, INodeExt, };
 
-static CPU : Processor = Processor::new();
+pub static CPU : Processor = Processor::new();
 
 pub fn init() {
     println!("+------ now to initialize process ------+");
@@ -23,7 +23,7 @@ pub fn init() {
     }
 
     let data = ROOT_INODE
-        .lookup("rust/hello_rust")
+        .lookup("rust/hello_fork")
         .unwrap()
         .read_as_vec()
         .unwrap();
@@ -31,7 +31,6 @@ pub fn init() {
     let user = unsafe{ Thread::new_user(data.as_slice()) };
 
     CPU.add_thread(user);
-    //CPU.run();
 }
 
 pub fn kmain() {
@@ -39,9 +38,12 @@ pub fn kmain() {
 }
 
 pub fn process() -> &'static mut Box<Process> {
-    use core::mem::transmute;
     let process: &mut Thread = CPU.context();
     process.proc.as_mut().unwrap()
+}
+
+pub fn thread() -> &'static mut Thread {
+    CPU.context()
 }
 
 

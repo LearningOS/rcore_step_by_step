@@ -77,6 +77,19 @@ impl ContextContent {
         }
     }
 
+    fn new_fork(tf : &mut TrapFrame, satp : usize) -> Self {
+        ContextContent{
+            ra : trap_return as usize,
+            satp,
+            s : [0;12],
+            tf : {
+                let mut new_tf = tf.clone();
+                new_tf.x[10] = 0;
+                new_tf
+            },
+        }
+    }
+
     unsafe fn push_at(self, stack_top : usize) -> Context {
         let ptr = (stack_top as *mut Self).sub(1); //real kernel stack top
         *ptr = self;
@@ -169,4 +182,9 @@ impl Context {
     ) -> Self {
         ContextContent::new_user_thread(entry, ustack_top, satp).push_at(kstack_top)
     }
+
+    pub unsafe fn new_fork(tf : &mut TrapFrame, kstack_top : usize, satp : usize) -> Self {
+        ContextContent::new_fork(tf, satp).push_at(kstack_top)
+    }
+
 }

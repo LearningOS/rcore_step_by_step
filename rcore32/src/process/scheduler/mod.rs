@@ -72,6 +72,7 @@ impl RRSchedulerInner {
     }
 
     fn push(&mut self, tid : Tid) {
+        //println!("{} push to scheduler", tid);
         let tid = tid + 1;
         if tid + 1 > self.threads.len() {
             self.threads.resize_with(tid + 1, Default::default);

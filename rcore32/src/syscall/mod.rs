@@ -1,7 +1,6 @@
 use crate::context::TrapFrame;
-use crate::process::process;
+use crate::process::{ process, thread, CPU};
 use crate::process;
-use core::str::from_utf8;
 use core::slice;
 use crate::fs::file_handle::FileHandle;
 
@@ -28,6 +27,9 @@ pub fn syscall(id : usize, args : [usize;3], tf : &mut TrapFrame) -> isize{
         SYS_EXIT => {
             sys_exit(args[0]);
         },
+        SYS_FORK => {
+            sys_fork(tf);
+        },
         _ => { 
             panic!("unknown syscall id {}", id);
         },
@@ -40,6 +42,7 @@ pub const SYS_CLOSE: usize = 57;    // 关闭文件
 pub const SYS_READ: usize = 63;
 pub const SYS_WRITE: usize = 64;
 pub const SYS_EXIT: usize = 93;
+pub const SYS_FORK: usize = 220;
 
 fn sys_openat(path: *const u8) -> isize {
     let proc = process();
@@ -68,4 +71,10 @@ fn sys_read(fd : usize, base : *mut u8, len : usize) -> isize {
 fn sys_exit(code : usize) {
     println!("exit!");
     process::exit(code);
+}
+
+fn sys_fork(tf : &mut TrapFrame) -> isize {
+    let new_thread = unsafe{ thread().fork(tf) };
+    CPU.add_thread(new_thread);
+    return 0;
 }
