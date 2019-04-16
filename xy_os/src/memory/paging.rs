@@ -94,17 +94,20 @@ impl InactivePageTable {
             println!("{:#x}", start);
             println!("{:#x}", end);
             println!("{}", end - start);
+            println!("{:#x}", self.pgtable_vaddr());
+            println!("{:#x}", self.pgtable_paddr());
             */
-            let mut addr = start;
+            //panic!("????");
+            let mut addr = start & 0xffc00000;
             let pg_table = &mut *(self.pgtable_vaddr() as *mut [u32; 1024]);
             while addr < end {
-                pg_table[get_PDX(addr)] = (addr - self.offset) as u32 | attr.0;
+                pg_table[get_PDX(addr)] = ((addr - self.offset) >> 2) as u32 | attr.0;
                 addr += (1 << 22);
             }
         }
     }
 
-    unsafe fn set_root_table(root_table: usize) { // 设置satp。切换二级页表
+    unsafe fn set_root_table(root_table: usize) { // 设置satp
         asm!("csrw satp, $0" :: "r"(root_table) :: "volatile");
     }
 
@@ -114,8 +117,8 @@ impl InactivePageTable {
 
     pub unsafe fn activate(&mut self) {
         // println!()
-        println!("{:#x}", (self.pgtable_paddr() >> 10) | (1 << 31));
-        Self::set_root_table((self.pgtable_paddr() >> 10) | (1 << 31));
+        println!("{:#x}", (self.pgtable_paddr() >> 12) | (1 << 31));
+        Self::set_root_table((self.pgtable_paddr() >> 12) | (1 << 31));
         Self::flush_tlb();
     }
 }
