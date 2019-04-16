@@ -1,5 +1,5 @@
 pub mod frame_allocator;
-pub mod paging;
+mod paging;
 
 use frame_allocator::{ init as init_frame_allocator, test as test_frame_allocator };
 use crate::consts::*;
@@ -20,7 +20,7 @@ pub fn init(dtb: usize) {
     } else {
         panic!("failed to query memory");
     }
-    test_frame_allocator();
+    // test_frame_allocator();
     remap_kernel(dtb);
 }
 
@@ -69,46 +69,27 @@ extern "C" {
 }
 
 fn remap_kernel(dtb: usize) {
-    let offset = - ( KERNEL_OFFSET as isize - MEMORY_OFFSET as isize);
-    use crate::memory_set::MemorySet;
-    let mut memset = MemorySet::new();
-    memset.push(
-        stext as usize,
-        etext as usize,
-        MemoryAttr::new().set_execute().set_readonly(),
-        Linear::new(offset),
-    );
-    memset.push(
-        srodata as usize,
-        erodata as usize,
-        MemoryAttr::new().set_readonly(),
-        Linear::new(offset),
-    );
-    memset.push(
-        sdata as usize,
-        edata as usize,
-        MemoryAttr::new(),
-        Linear::new(offset),
-    );
-    memset.push(
-        bootstack as usize,
-        bootstacktop as usize,
-        MemoryAttr::new(),
-        Linear::new(offset),
-    );
-    memset.push(
-        sbss as usize,
-        ebss as usize,
-        MemoryAttr::new(),
-        Linear::new(offset),
-    );
-    memset.push(
-        dtb as usize,
-        dtb as usize + MAX_DTB_SIZE,
-        MemoryAttr::new(),
-        Linear::new(offset),
-    );
-    unsafe{
-        memset.activate();
+    println!("remaping");
+    let offset = KERNEL_OFFSET as usize - MEMORY_OFFSET as usize;
+    use crate::memory::paging::{ InactivePageTable, MemoryAttr };
+
+    let mut pg_table = InactivePageTable::new(offset);
+    /*
+    pg_table.set(stext as usize, etext as usize, MemoryAttr::new().set_readonly().set_execute());
+    pg_table.set(srodata as usize, erodata as usize, MemoryAttr::new().set_readonly());
+    pg_table.set(sdata as usize, edata as usize, MemoryAttr::new());
+    pg_table.set(bootstack as usize, bootstacktop as usize, MemoryAttr::new());
+    pg_table.set(sbss as usize, ebss as usize, MemoryAttr::new());
+    pg_table.set(dtb, dtb + MAX_DTB_SIZE, MemoryAttr::new());
+    */
+    pg_table.set(stext as usize, etext as usize, MemoryAttr::new().set_all());
+    pg_table.set(srodata as usize, erodata as usize, MemoryAttr::new().set_all());
+    pg_table.set(sdata as usize, edata as usize, MemoryAttr::new().set_all());
+    pg_table.set(bootstack as usize, bootstacktop as usize, MemoryAttr::new().set_all());
+    pg_table.set(sbss as usize, ebss as usize, MemoryAttr::new().set_all());
+    pg_table.set(dtb, dtb + MAX_DTB_SIZE, MemoryAttr::new().set_all());
+    unsafe {
+        pg_table.activate();
     }
+    println!("!!!");
 }

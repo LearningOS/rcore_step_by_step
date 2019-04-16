@@ -49,14 +49,10 @@ static pte_t p3_table[1 << RISCV_PGLEVEL_BITS] __attribute__((aligned(RISCV_PGSI
 static void setup_page_table_sv32()
 {
   // map kernel [0x300..] 0x80000000 -> 0xC0000000..
-  int i_end = dtb_output() / MEGAPAGE_SIZE;
-  for(int i=0x200; i<=i_end; ++i) {
-    root_table[i + 0x100] = pte_create(i << RISCV_PGLEVEL_BITS, PTE_R | PTE_W | PTE_X);
+  int i_end = dtb_output();
+  for(unsigned int i = 0x80000000; i <= i_end; i += MEGAPAGE_SIZE) {
+    root_table[(i + 0x40000000) / MEGAPAGE_SIZE] = pte_create(i >> 12, PTE_R | PTE_W | PTE_X);
   }
-  // map recursive [0x3fd] (V), [0x3fe] (VRW), [0x3ff] (VRW)
-  uintptr_t root_table_ppn = (uintptr_t)root_table >> RISCV_PGSHIFT;
-  root_table[0x3fd] = pte_create(root_table_ppn, 0);
-  root_table[0x3fe] = pte_create(root_table_ppn, PTE_R | PTE_W);
 }
 
 static void setup_page_table_sv39()
