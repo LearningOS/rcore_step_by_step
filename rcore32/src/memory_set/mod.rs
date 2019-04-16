@@ -64,4 +64,32 @@ impl MemorySet {
     pub fn token(&self) -> usize {
         self.page_table.token()
     }
+
+    fn clear(&mut self) {
+        for area in self.areas.iter() {
+            self.page_table.edit(|pt| area.unmap(pt));
+        }
+    }
+}
+
+impl Drop for MemorySet {
+    fn drop(&mut self) {
+        self.clear();
+    }
+}
+
+impl Clone for MemorySet {
+    fn clone(&self) -> Self{
+        let mut page_table = InactivePageTable::new();
+        page_table.map_kernel();
+        page_table.edit(|pt|{
+            for area in self.areas.iter() {
+                area.map(pt);
+            }
+        });
+        MemorySet{
+            areas : self.areas.clone(),
+            page_table,
+        }
+    }
 }

@@ -23,7 +23,7 @@ pub fn init() {
     }
 
     let data = ROOT_INODE
-        .lookup("rust/hello_cargo")
+        .lookup("rust/hello_rust")
         .unwrap()
         .read_as_vec()
         .unwrap();
@@ -31,7 +31,7 @@ pub fn init() {
     let user = unsafe{ Thread::new_user(data.as_slice()) };
 
     CPU.add_thread(user);
-    CPU.run();
+    //CPU.run();
 }
 
 pub fn kmain() {
@@ -48,6 +48,10 @@ pub fn process() -> &'static mut Box<Process> {
 
 pub fn sleep(time : usize) {
     CPU.sleep(time);
+}
+
+pub fn exit(code : usize) {
+    CPU.exit(code);
 }
 
 pub struct KernelStack(usize);
@@ -85,6 +89,7 @@ pub type Tid = usize;
 pub type Pid = usize;
 
 pub fn tick() {
+    //println!("tick");
     CPU.tick();
 }
 

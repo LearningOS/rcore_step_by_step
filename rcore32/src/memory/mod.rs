@@ -86,6 +86,7 @@ extern "C" {
     fn bootstacktop();
 }
 
+use core::mem;
 fn remap_kernel(dtb : usize) {
     let offset = - ( KERNEL_OFFSET as isize - MEMORY_OFFSET as isize);
 
@@ -130,6 +131,7 @@ fn remap_kernel(dtb : usize) {
     unsafe{
         memset.activate();
     }
+    mem::forget(memset);
 }
 
 use riscv::register::satp;

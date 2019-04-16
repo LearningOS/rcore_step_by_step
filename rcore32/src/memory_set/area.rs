@@ -18,7 +18,7 @@ impl MemoryArea {
         }
     }
 
-    fn unmap(&self, pt : &mut ActivePageTable) {
+    pub fn unmap(&self, pt : &mut ActivePageTable) {
         for page in PageRange::new(self.start, self.end) {
             self.handler.unmap(pt, page);
         }

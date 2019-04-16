@@ -48,9 +48,16 @@ pub fn sys_close(fd: usize) -> i32 {
     sys_call(SyscallId::Close, fd, 0, 0, 0)
 }
 
+
+pub fn sys_exit(code: usize) -> ! {
+    sys_call(SyscallId::Exit, code, 0, 0, 0);
+    loop{}
+}
+
 enum SyscallId {
     Openat = 56,
     Close = 57,
     Read = 63,
     Write = 64,
+    Exit = 93,
 }

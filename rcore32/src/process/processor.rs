@@ -65,13 +65,14 @@ impl Processor {
         }
         loop{
             if let Some(proc) = inner.pool.acquire() {
+                println!("new thread to run");
                 inner.current = Some(proc);
 
                 unsafe{ inner.idle.switch_to(&mut *inner.current.as_mut().unwrap().1);}
 
                 let (tid, thread) = inner.current.take().unwrap();
 
-                //println!("{} ran just now", tid);
+                println!("{} ran just now", tid);
 
                 inner.pool.retrieve(tid, thread);
             }else{

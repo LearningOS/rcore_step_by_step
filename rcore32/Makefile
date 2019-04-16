@@ -55,7 +55,7 @@ export CC=$(cc)
 all: kernel
 
 clean:
-	@rm -rf target
+	@cargo clean
 	@cd usr && make clean
 
 run: build justrun
@@ -69,7 +69,7 @@ debug: $(kernel) $(bin)
 	@sleep 1
 	@$(gdb) $(kernel) -x src/tools/gdbinit
 
-build: sfsimg $(bin) 
+build: $(bin) 
 	@echo $(bin)
 
 sfsimg:

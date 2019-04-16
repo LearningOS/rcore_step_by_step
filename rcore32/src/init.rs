@@ -13,7 +13,7 @@ pub extern "C" fn rust_main(hartid : usize, dtb : usize) -> ! {
     fs_init();
     process_init();
     clock_init();
-    //kmain();
+    kmain();
     loop{}
 }
 

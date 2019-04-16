@@ -130,31 +130,11 @@ impl Process {
 }
 
 trait ElfExt {
-    fn get_interpreter(&self) -> Result<&str, &str>;
-
     fn make_memory_set(&self) -> MemorySet;
 }
 
 use core::str;
 impl ElfExt for ElfFile<'_> {
-    fn get_interpreter(&self) -> Result<&str, &str> {
-        let header = self
-            .program_iter()
-            .filter(|ph| ph.get_type() == Ok(Type::Interp))
-            .next()
-            .ok_or("no interp header")?;
-        let mut data = match header.get_data(self)? {
-            SegmentData::Undefined(data) => data,
-            _ => unreachable!(),
-        };
-        // skip NULL
-        while let Some(0) = data.last() {
-            data = &data[..data.len() - 1];
-        }
-        let path = str::from_utf8(data).map_err(|_| "failed to convert to utf8")?;
-        Ok(path)
-    }
-
     fn make_memory_set(&self) -> MemorySet {
         println!("creating MemorySet from ELF");
         let mut ms = MemorySet::new_kern(); // 创建自带内核地址空间的虚拟存储系统

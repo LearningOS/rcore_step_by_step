@@ -6,7 +6,7 @@ rust_src_dir := rust/src/bin
 rust_bin_path := rust/target/riscv32-blog_os/debug
 rust_bins := $(patsubst $(rust_src_dir)/%.rs, $(rust_bin_path)/%, $(wildcard $(rust_src_dir)/*.rs)) 
 
-.PHONY: all clean build rust 
+.PHONY: all clean build rust sfsimg
 
 all : rust build
 
@@ -23,6 +23,9 @@ build : $(out_img)
 $(out_img) : rust
 	@rcore-fs-fuse $@ $(out_dir) zip
 
+sfsimg :
+	@rcore-fs-fuse $(out_img) $(out_dir) zip
+
 rcore-fs-fuse:
 ifeq ($(shell which rcore-fs-fuse),)
 	@echo Installing rcore-fs-fuse
@@ -31,5 +34,5 @@ endif
 
 clean :
 	@rm -rf $(out_dir)
-	@cd rust && rm target -rf
+	@cd rust && cargo clean
 	@rm -f $(out_img)

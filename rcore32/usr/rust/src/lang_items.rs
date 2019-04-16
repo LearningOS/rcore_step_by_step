@@ -1,6 +1,6 @@
 use core::panic::PanicInfo;
 use core::alloc::Layout;
-/// This function is called on panic.
+use crate::syscall::*;
 
 #[linkage = "weak"]
 #[no_mangle]
@@ -34,8 +34,7 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start(_argc: isize, _argv: *const *const u8) -> ! {
     //init_heap();
     main();
-    loop{}
-    //sys_exit(0)
+    sys_exit(0)
 }
 
 #[no_mangle]

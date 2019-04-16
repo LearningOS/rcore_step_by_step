@@ -66,7 +66,6 @@ impl ContextContent {
             s : [0;12],
             tf : {
                 let mut tf: TrapFrame = unsafe { zeroed() };
-                //tf.x[10] = arg; // 存放第一个参数的寄存器a0
                 tf.x[2] = ustack_top;   // 栈顶ｓｐ
                 tf.sepc = entry;   // sepc在调用sret之后将被被赋值给ＰＣ
                 tf.sstatus = sstatus::read();
