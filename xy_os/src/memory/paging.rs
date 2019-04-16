@@ -61,6 +61,7 @@ fn get_leaf_PTE(PTE: usize, addr: usize) -> usize {
 
 pub struct InactivePageTable {
     root_table: Frame,
+    PTEs: [Option<Frame>; 1024],
     offset: usize,
 }
 
@@ -69,6 +70,7 @@ impl InactivePageTable {
         if let Some(_root_table) = alloc_frame() {
             return InactivePageTable {
                 root_table: _root_table,
+                PTEs: [None; 1024],
                 offset: _offset,
             }
         } else {
@@ -98,11 +100,20 @@ impl InactivePageTable {
             println!("{:#x}", self.pgtable_paddr());
             */
             //panic!("????");
-            let mut addr = start & 0xffc00000;
+            let mut addr = start & 0xffc00000; // 4K 对齐
             let pg_table = &mut *(self.pgtable_vaddr() as *mut [u32; 1024]);
             while addr < end {
-                pg_table[get_PDX(addr)] = ((addr - self.offset) >> 2) as u32 | attr.0;
-                addr += (1 << 22);
+                let PDX = get_PDX(addr);
+                let PTE = pg_table[PDX];
+                if (PTE == 0) {
+                    self.PTEs[PDX] = alloc_frame();
+                    let PPN = self.PTEs[PDX].unwrap().start_address().as_usize() >> 2;
+                    pg_table[PDX] = PPN as u32 | 0xf; // set XWRV
+                }
+                let PPN = (pg_table[PDX] & (!0x3ff)) << 2;
+                let pg_table_2 = &mut *((PPN as usize + self.offset) as *mut [u32; 1024]);
+                pg_table_2[get_PTX(addr)] = ((addr - self.offset) >> 2) as u32 | 0xf; // set XWRV
+                addr += (1 << 12);
             }
         }
     }
