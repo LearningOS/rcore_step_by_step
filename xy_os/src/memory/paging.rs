@@ -108,7 +108,7 @@ impl InactivePageTable {
                 if (PTE == 0) {
                     self.PTEs[PDX] = alloc_frame();
                     let PPN = self.PTEs[PDX].unwrap().start_address().as_usize() >> 2;
-                    pg_table[PDX] = PPN as u32 | 0xf; // set XWRV
+                    pg_table[PDX] = PPN as u32 | 0x1; // pointer to next level of page table.
                 }
                 let PPN = (pg_table[PDX] & (!0x3ff)) << 2;
                 let pg_table_2 = &mut *((PPN as usize + self.offset) as *mut [u32; 1024]);

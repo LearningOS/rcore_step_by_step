@@ -48,7 +48,7 @@ static pte_t p3_table[1 << RISCV_PGLEVEL_BITS] __attribute__((aligned(RISCV_PGSI
 
 static void setup_page_table_sv32()
 {
-  // map kernel [0x300..] 0x80000000 -> 0xC0000000..
+  // map kernel 0x80000000 -> 0xC0000000..
   int i_end = dtb_output();
   for(unsigned int i = 0x80000000; i <= i_end; i += MEGAPAGE_SIZE) {
     root_table[(i + 0x40000000) / MEGAPAGE_SIZE] = pte_create(i >> 12, PTE_R | PTE_W | PTE_X);
