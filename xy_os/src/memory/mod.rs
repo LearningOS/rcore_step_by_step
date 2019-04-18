@@ -72,26 +72,14 @@ fn remap_kernel(dtb: usize) {
     println!("remaping");
     let offset = KERNEL_OFFSET as usize - MEMORY_OFFSET as usize;
     use crate::memory::paging::{ InactivePageTable, MemoryAttr };
-
     let mut pg_table = InactivePageTable::new(offset);
-    /*
     pg_table.set(stext as usize, etext as usize, MemoryAttr::new().set_readonly().set_execute());
+    pg_table.set(sdata as usize, edata as usize, MemoryAttr::new().set_WR());
     pg_table.set(srodata as usize, erodata as usize, MemoryAttr::new().set_readonly());
-    pg_table.set(sdata as usize, edata as usize, MemoryAttr::new());
-    pg_table.set(bootstack as usize, bootstacktop as usize, MemoryAttr::new());
-    pg_table.set(sbss as usize, ebss as usize, MemoryAttr::new());
-    pg_table.set(dtb, dtb + MAX_DTB_SIZE, MemoryAttr::new());
-    */
-    
-    pg_table.set(stext as usize, etext as usize, MemoryAttr::new().set_all());
-    pg_table.set(srodata as usize, erodata as usize, MemoryAttr::new().set_all());
-    pg_table.set(sdata as usize, edata as usize, MemoryAttr::new().set_all());
-    pg_table.set(bootstack as usize, bootstacktop as usize, MemoryAttr::new().set_all());
-    pg_table.set(sbss as usize, ebss as usize, MemoryAttr::new().set_all());
-    pg_table.set(dtb, dtb + MAX_DTB_SIZE, MemoryAttr::new().set_all());
-    
+    pg_table.set(sbss as usize, ebss as usize, MemoryAttr::new().set_WR());
+    pg_table.set(bootstack as usize, bootstacktop as usize, MemoryAttr::new().set_WR());
+    pg_table.set(dtb, dtb + MAX_DTB_SIZE, MemoryAttr::new().set_WR());
     unsafe {
         pg_table.activate();
     }
-    println!("!!!");
 }

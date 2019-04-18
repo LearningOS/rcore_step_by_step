@@ -40,7 +40,7 @@ fn super_timer() {
     unsafe{
         TICK = TICK + 1;
         if TICK % 100 == 0 {
-            println!("ticks 100!");
+            println!("100 ticks!");
         }
     }
     // tick();

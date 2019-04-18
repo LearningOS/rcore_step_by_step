@@ -9,16 +9,6 @@ impl MemoryAttr {
         MemoryAttr(1)
     }
 
-    pub fn clear(mut self) -> MemoryAttr {
-        self.0 = 0;
-        self
-    }
-
-    pub fn set_valid(mut self) -> MemoryAttr {
-        self.0 = self.0 | 1; // 1 << 0
-        self
-    }
-
     pub fn set_readonly(mut self) -> MemoryAttr {
         self.0 = self.0 | 2; // 1 << 1
         self
@@ -29,13 +19,9 @@ impl MemoryAttr {
         self
     }
 
-    pub fn set_all(mut self) -> MemoryAttr {
-        self.0 = self.0 | 1 | 2 | 4 | 8;
+    pub fn set_WR(mut self) -> MemoryAttr {
+        self.0 = self.0 | 2 | 4;
         self
-    }
-
-    pub fn is_valid(&self) -> bool {
-        (self.0 & 1) == 1
     }
 }
 
@@ -48,20 +34,9 @@ fn get_PTX(addr: usize) -> usize {
     (addr >> 12) & 0x3ff
 }
 
-fn get_PTE(pg_dir: usize, addr: usize) -> usize {
-    unsafe {
-        let pg_table = &mut *(pg_dir as *mut [u32; 1024]);
-        pg_table[get_PDX(addr)] as usize
-    }
-}
-
-fn get_leaf_PTE(PTE: usize, addr: usize) -> usize {
-    1
-}
-
 pub struct InactivePageTable {
     root_table: Frame,
-    PTEs: [Option<Frame>; 1024],
+    PDEs: [Option<Frame>; 1024],
     offset: usize,
 }
 
@@ -70,18 +45,14 @@ impl InactivePageTable {
         if let Some(_root_table) = alloc_frame() {
             return InactivePageTable {
                 root_table: _root_table,
-                PTEs: [None; 1024],
+                PDEs: [None; 1024],
                 offset: _offset,
             }
         } else {
             panic!("oom");
         }
     }
-
-    pub fn attr(&self) -> MemoryAttr {
-        MemoryAttr((self.root_table.start_address().as_usize() as u32) & 1023)
-    }
-
+    
     fn pgtable_paddr(&mut self) -> usize {
         self.root_table.start_address().as_usize()
     }
@@ -92,28 +63,27 @@ impl InactivePageTable {
 
     pub fn set(&mut self, start: usize, end: usize, attr: MemoryAttr) {
         unsafe {
-            /*
-            println!("{:#x}", start);
-            println!("{:#x}", end);
-            println!("{}", end - start);
-            println!("{:#x}", self.pgtable_vaddr());
-            println!("{:#x}", self.pgtable_paddr());
-            */
-            //panic!("????");
-            let mut addr = start & 0xffc00000; // 4K 对齐
+
+                println!("{}", attr.0);
+            let mut vaddr = start & !0xfff; // 4K 对齐
             let pg_table = &mut *(self.pgtable_vaddr() as *mut [u32; 1024]);
-            while addr < end {
-                let PDX = get_PDX(addr);
-                let PTE = pg_table[PDX];
-                if (PTE == 0) {
-                    self.PTEs[PDX] = alloc_frame();
-                    let PPN = self.PTEs[PDX].unwrap().start_address().as_usize() >> 2;
-                    pg_table[PDX] = PPN as u32 | 0x1; // pointer to next level of page table.
+            while vaddr < end {
+                // 1-1. 通过页目录和 VPN[1] 找到所需页目录项
+                let PDX = get_PDX(vaddr);
+                let PDE = pg_table[PDX];
+                // 1-2. 若不存在则创建
+                if PDE == 0 {
+                    self.PDEs[PDX] = alloc_frame();
+                    let PDE_PPN = self.PDEs[PDX].unwrap().start_address().as_usize() >> 12;
+                    pg_table[PDX] = (PDE_PPN << 10) as u32 | 0x1; // pointer to next level of page table
                 }
-                let PPN = (pg_table[PDX] & (!0x3ff)) << 2;
-                let pg_table_2 = &mut *((PPN as usize + self.offset) as *mut [u32; 1024]);
-                pg_table_2[get_PTX(addr)] = ((addr - self.offset) >> 2) as u32 | 0xf; // set XWRV
-                addr += (1 << 12);
+                // 2. 页目录项包含了叶结点页表（简称页表）的起始地址，通过页目录项找到页表
+                let pg_table_paddr = (pg_table[PDX] & (!0x3ff)) << 2;
+                // 3. 通过页表和 VPN[0] 找到所需页表项
+                // 4. 设置页表项包含的页面的起始物理地址和相关属性
+                let pg_table_2 = &mut *((pg_table_paddr as usize + self.offset) as *mut [u32; 1024]);
+                pg_table_2[get_PTX(vaddr)] = ((vaddr - self.offset) >> 2) as u32 | attr.0; // set XWRV
+                vaddr += (1 << 12);
             }
         }
     }
@@ -127,8 +97,6 @@ impl InactivePageTable {
     }
 
     pub unsafe fn activate(&mut self) {
-        // println!()
-        println!("{:#x}", (self.pgtable_paddr() >> 12) | (1 << 31));
         Self::set_root_table((self.pgtable_paddr() >> 12) | (1 << 31));
         Self::flush_tlb();
     }
