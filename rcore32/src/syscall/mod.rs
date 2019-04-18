@@ -1,5 +1,5 @@
 use crate::context::TrapFrame;
-use crate::process::{ process, thread, CPU};
+use crate::process::{ process, thread, CPU, excute, current_tid};
 use crate::process;
 use core::slice;
 use crate::fs::file_handle::FileHandle;
@@ -12,6 +12,9 @@ pub unsafe fn from_cstr(s: *const u8) -> &'static str {
 
 pub fn syscall(id : usize, args : [usize;3], tf : &mut TrapFrame) -> isize{
     match id {
+        SYS_SLEEP => {
+            sys_sleep(args[0]);
+        },
         SYS_OPENAT => {
             return sys_openat(args[1] as *const u8);
         },
@@ -27,8 +30,14 @@ pub fn syscall(id : usize, args : [usize;3], tf : &mut TrapFrame) -> isize{
         SYS_EXIT => {
             sys_exit(args[0]);
         },
+        SYS_PID => {
+            return sys_pid();
+        },
         SYS_FORK => {
             sys_fork(tf);
+        },
+        SYS_EXEC => {
+            sys_exec(args[0] as *const u8);
         },
         _ => { 
             panic!("unknown syscall id {}", id);
@@ -37,12 +46,19 @@ pub fn syscall(id : usize, args : [usize;3], tf : &mut TrapFrame) -> isize{
     return 0;
 }
 
+pub const SYS_SLEEP: usize = 35;   // 睡眠
 pub const SYS_OPENAT: usize = 56;   // 打开文件
 pub const SYS_CLOSE: usize = 57;    // 关闭文件
 pub const SYS_READ: usize = 63;
 pub const SYS_WRITE: usize = 64;
 pub const SYS_EXIT: usize = 93;
+pub const SYS_PID: usize = 172;
 pub const SYS_FORK: usize = 220;
+pub const SYS_EXEC: usize = 221;
+
+fn sys_sleep(time : usize) {
+    CPU.sleep(time);
+}
 
 fn sys_openat(path: *const u8) -> isize {
     let proc = process();
@@ -60,6 +76,10 @@ fn sys_openat(path: *const u8) -> isize {
 }
 
 fn sys_read(fd : usize, base : *mut u8, len : usize) -> isize {
+    if fd == 0 {
+        unsafe{ *base = crate::fs::STDIN.pop() as u8; }
+        return 1;
+    }
     let proc = process();
     let handle = proc.get_file_handle(fd).unwrap();
 
@@ -77,4 +97,15 @@ fn sys_fork(tf : &mut TrapFrame) -> isize {
     let new_thread = unsafe{ thread().fork(tf) };
     CPU.add_thread(new_thread);
     return 0;
+}
+
+fn sys_exec(path : *const u8) -> isize {
+    excute(
+        unsafe{ from_cstr(path) }
+        );
+    return 0;
+}
+
+fn sys_pid() -> isize {
+    current_tid() as isize
 }

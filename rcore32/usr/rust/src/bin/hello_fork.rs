@@ -9,6 +9,6 @@ pub fn main() {
     println!("Hello Fork !");
     for i in 0..3 {
         rcore32_user::syscall::sys_fork();
-        println!("i : {}", i);
+        println!("in thread {}, i : {}", rcore32_user::syscall::sys_getpid(), i);
     }
 }

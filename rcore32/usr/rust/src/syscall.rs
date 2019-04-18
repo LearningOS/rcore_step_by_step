@@ -23,8 +23,8 @@ pub fn sys_write(ch : u8) -> i32 {
     sys_call(SyscallId::Write, ch as usize, 0, 0, 0)
 }
 
-pub fn sys_read(fd : usize, buf : &mut [u8]) -> i32 {
-    sys_call(SyscallId::Read, fd, buf.as_ptr() as usize, buf.len(), 0)
+pub fn sys_read(fd : usize, base : *const u8, len : usize) -> i32 {
+    sys_call(SyscallId::Read, fd, base as usize , len , 0)
 }
 
 pub fn sys_open(path: &str, flags: usize) -> i32 {
@@ -58,11 +58,26 @@ pub fn sys_fork() -> i32 {
     sys_call(SyscallId::Fork, 0, 0, 0, 0)
 }
 
+pub fn sys_exec(path : *const u8) {
+    sys_call(SyscallId::Exec, path as usize, 0, 0, 0);
+}
+
+pub fn sys_getpid() -> i32{
+    sys_call(SyscallId::GetPid, 0, 0, 0, 0)
+}
+
+pub fn sys_sleep(time : usize) -> i32{
+    sys_call(SyscallId::Sleep, time, 0, 0, 0)
+}
+
 enum SyscallId {
+    Sleep = 35,
     Openat = 56,
     Close = 57,
     Read = 63,
     Write = 64,
     Exit = 93,
+    GetPid = 172,
     Fork = 220,
+    Exec = 221,
 }

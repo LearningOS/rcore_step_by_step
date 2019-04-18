@@ -44,17 +44,22 @@ impl Processor {
 
     pub fn tick(&self) {
         let inner = self.inner();
-        if inner.pool.tick() && !inner.current.is_none() {
-            unsafe{
-                let flags = disable_and_store();
-                inner
-                    .current
-                    .as_mut()
-                    .unwrap()
-                    .1
-                    .switch_to(&mut inner.idle);
-                restore(flags);
+        if !inner.current.is_none() { // 当前正在执行的线程不是idle
+            let tid = inner.current.as_ref().unwrap().0;
+            if inner.pool.tick(tid) {
+                unsafe{
+                    let flags = disable_and_store();
+                    inner
+                        .current
+                        .as_mut()
+                        .unwrap()
+                        .1
+                        .switch_to(&mut inner.idle);
+                    restore(flags);
+                }
             }
+        }else{
+            inner.pool.tick(0);
         }
     }
 
@@ -65,7 +70,6 @@ impl Processor {
         }
         loop{
             if let Some(proc) = inner.pool.acquire() {
-                println!("new thread to run");
                 inner.current = Some(proc);
 
                 unsafe{ inner.idle.switch_to(&mut *inner.current.as_mut().unwrap().1);}
@@ -103,20 +107,30 @@ impl Processor {
 
     pub fn yield_now(&self) {
         let inner = self.inner();
-        unsafe {
-            let flags = disable_and_store(); // 禁止中断，获取当前ｓｓｔａｔｕｓ的状态并保存。
-            inner
-                .current
-                .as_mut()
-                .unwrap()
-                .1
-                .switch_to(&mut *inner.idle);   // 转到ｉｄｌｅ线程执行
-            restore(flags);  // 使能中断，恢复ｓｓｔａｔｕｓ的状态
+        if !inner.current.is_none() {
+            unsafe {
+                let flags = disable_and_store(); // 禁止中断，获取当前ｓｓｔａｔｕｓ的状态并保存。
+                inner
+                    .current
+                    .as_mut()
+                    .unwrap()
+                    .1
+                    .switch_to(&mut *inner.idle);   // 转到ｉｄｌｅ线程执行
+                restore(flags);  // 使能中断，恢复ｓｓｔａｔｕｓ的状态
+            }
         }
+    }
+
+    pub fn wake_up(&self, tid : Tid) {
+        let inner = self.inner();
+        inner.pool.wakeup(tid);
     }
 
     pub fn context(&self) -> &mut Thread {
         &mut *self.inner().current.as_mut().unwrap().1
     }
 
+    pub fn current_tid(&self) -> usize {
+        self.inner().current.as_mut().unwrap().0 as usize
+    }
 }

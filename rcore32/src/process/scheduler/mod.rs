@@ -5,7 +5,7 @@ use spin::Mutex;
 pub trait Scheduler {
     fn push(&self, tid : Tid) ;
     fn pop(&self) -> Option<Tid>;
-    fn tick(&self) -> bool;
+    fn tick(&self, tid : Tid) -> bool;
     fn set_priority(&self, tid : Tid, priority : u8);
     fn exit(&self, tid : Tid);
 }
@@ -21,7 +21,6 @@ struct RRInfo {
 struct RRSchedulerInner {
     threads : Vec<RRInfo>,
     max_time : usize,
-    current : usize,
 }
 
 pub struct RRScheduler {
@@ -35,8 +34,8 @@ impl Scheduler for RRScheduler {
     fn pop(&self) -> Option<Tid> {
         self.inner.lock().pop()
     }
-    fn tick(&self) -> bool {
-        self.inner.lock().tick()
+    fn tick(&self, tid : Tid) -> bool {
+        self.inner.lock().tick(tid)
     }
     fn set_priority(&self, tid : Tid, priority : u8) {
         self.inner.lock().set_priority(tid, priority);
@@ -60,7 +59,6 @@ impl RRSchedulerInner {
         let mut rr = RRSchedulerInner{
             threads : Vec::default(),
             max_time : max_time_slice,
-            current : 0,
         };
         rr.threads.push(RRInfo {
             valid : false,
@@ -72,8 +70,6 @@ impl RRSchedulerInner {
     }
 
     fn push(&mut self, tid : Tid) {
-        //println!("{} push to scheduler", tid);
-        let tid = tid + 1;
         if tid + 1 > self.threads.len() {
             self.threads.resize_with(tid + 1, Default::default);
         }
@@ -100,15 +96,13 @@ impl RRSchedulerInner {
             self.threads[ret].prev = 0;
             self.threads[ret].next = 0;
             self.threads[ret].valid = false;
-            self.current = ret;
-            Some(ret-1)
+            Some(ret)
         }else{
             None
         }
     }
 
-    fn tick(&mut self) -> bool{
-        let tid = self.current;
+    fn tick(&mut self, tid : Tid) -> bool{
         if tid != 0 {
             if self.threads[tid].time > 0 {
                 self.threads[tid].time-= 1;
@@ -127,18 +121,7 @@ impl RRSchedulerInner {
     }
 
     fn exit(&mut self, tid : Tid) {
-        let tid = tid + 1;
-        if self.current == tid {
-            self.threads[tid].time = 0;
-            self.threads[tid].valid = false;
-            self.current = 0;
-        }
-    }
-
-    fn sleep(&mut self, tid : Tid) {
-        let tid = tid + 1;
-        if self.current == tid {
-            self.current = 0;
-        }
+        self.threads[tid].time = 0;
+        self.threads[tid].valid = false;
     }
 }

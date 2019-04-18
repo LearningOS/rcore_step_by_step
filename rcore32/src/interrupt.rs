@@ -59,6 +59,12 @@ pub extern "C" fn rust_trap(tf:&mut TrapFrame) {
         Trap::Exception(Exception::InstructionPageFault) => do_pgfault(tf, PageFault::InstructionPageFault),
         //Trap::Interrupt(Interrupt::MachineTimer) => machine_timer(),
         Trap::Interrupt(Interrupt::SupervisorTimer) => super_timer(),
+        Trap::Interrupt(Interrupt::SupervisorExternal) => {
+            //println!("a new keyboard intr");
+            let ch = crate::sbi::console_getchar() as u8 as char;
+            external(ch as u8);
+            //println!("hello {}", ch);
+        },
         _ => tf.print_trapframe(),
     }
 }
@@ -95,4 +101,8 @@ fn syscall(tf : &mut TrapFrame) {
         tf,
     );
     tf.x[10] = ret as usize;
+}
+
+fn external(ch : u8) {
+    crate::fs::STDIN.push(ch as char);
 }

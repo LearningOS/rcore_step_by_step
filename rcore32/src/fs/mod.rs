@@ -6,6 +6,9 @@ use lazy_static::*;
 
 mod device;
 pub mod file_handle;
+pub mod stdio;
+
+pub use self::stdio::STDIN;
 
 lazy_static! {
     /// The root of file system

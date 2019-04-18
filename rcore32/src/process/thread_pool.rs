@@ -32,7 +32,8 @@ impl ThreadPool{
 
     fn alloc_tid(&self) -> Tid {
         for (i, info) in self.threads.iter().enumerate() {
-            if info.is_none() || !info.as_ref().unwrap().present{
+            if i > 0 && 
+                (info.is_none() || !info.as_ref().unwrap().present){
                 return i;
             }
         }
@@ -51,7 +52,7 @@ impl ThreadPool{
         //println!("the tid to alloc : {}", tid);
     }
 
-    pub fn tick(&mut self) -> bool{
+    pub fn tick(&mut self, tid : Tid) -> bool{
         // 增加ｔｉｍｅｒ中的计时
         self.timer.tick();
         while let Some(action) = self.timer.pop() {
@@ -62,25 +63,23 @@ impl ThreadPool{
             };
         }
         // 通知调度器时钟周期加一，询问是否需要调度
-        self.scheduler.tick()
+        self.scheduler.tick(tid)
     }
 
     pub fn retrieve(&mut self, tid : Tid, thread : Box<Thread> ) {
         let mut proc = self.threads[tid].as_mut().expect("thread not exits !");
         if proc.present {
+            proc.thread = Some(thread);
             match proc.status {
-                Status::Sleeping => {
-                    proc.thread = Some(thread);
-                },
                 Status::Ready => {
-                    proc.thread = Some(thread);
                     proc.status = Status::Ready;
                     self.scheduler.push(tid);
                 },
-                _ => {},
+                _ => {
+                    //println!("do nothing!");
+                },
             }
         }
-        // set the state for stoped thread
     }
 
     pub fn acquire(&mut self) -> Option<(Tid, Box<Thread>)> {
@@ -114,15 +113,14 @@ impl ThreadPool{
         }
     }
 
-    fn wakeup(&mut self, tid : Tid) {
-        //println!("into wakeup");
+    pub fn wakeup(&mut self, tid : Tid) {
         let proc = self.threads[tid].as_mut().expect("thread not exits");
         if proc.present {
             proc.status = Status::Ready;
             self.scheduler.push(tid);
-            //println!("wakeup {}", tid);
         }else{
             panic!("try to sleep an null thread !");
         }
     }
+
 }

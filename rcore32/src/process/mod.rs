@@ -5,7 +5,7 @@ mod structs;
 mod scheduler;
 mod processor;
 
-use self::structs::{ Thread, Process};
+pub use self::structs::{ Thread, Process};
 use self::thread_pool::ThreadPool;
 use self::scheduler::RRScheduler;
 use self::processor::Processor;
@@ -23,7 +23,7 @@ pub fn init() {
     }
 
     let data = ROOT_INODE
-        .lookup("rust/hello_fork")
+        .lookup("rust/sh")
         .unwrap()
         .read_as_vec()
         .unwrap();
@@ -46,7 +46,9 @@ pub fn thread() -> &'static mut Thread {
     CPU.context()
 }
 
-
+pub fn current_tid() -> usize {
+    CPU.current_tid()
+}
 
 pub fn sleep(time : usize) {
     CPU.sleep(time);
@@ -54,6 +56,25 @@ pub fn sleep(time : usize) {
 
 pub fn exit(code : usize) {
     CPU.exit(code);
+}
+
+pub fn excute(name : &str) {
+    println!("name of program {}", name);
+    let data = ROOT_INODE
+        .lookup(name)
+        .unwrap()
+        .read_as_vec()
+        .unwrap();
+    let thread = unsafe{ Thread::new_user(data.as_slice()) };
+    CPU.add_thread(thread);
+}
+
+pub fn yield_now() {
+    CPU.yield_now();
+}
+
+pub fn wake_up(tid : Tid) {
+    CPU.wake_up(tid);
 }
 
 pub struct KernelStack(usize);

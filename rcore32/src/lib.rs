@@ -24,6 +24,7 @@ mod drivers;
 mod process;
 mod fs;
 mod syscall;
+mod sync;
 
 use buddy_system_allocator::LockedHeap;
 #[global_allocator]
