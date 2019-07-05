@@ -5,7 +5,7 @@ authors = ["PanQL <panqinglin00@163.com>"]
 edition = "2018"
 
 [dependencies]
-spin = "0.3"
+spin = "0.5.0"
 bitflags = "1.0"
 buddy_system_allocator = "0.1"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }

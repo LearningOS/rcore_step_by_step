@@ -91,7 +91,9 @@ impl Clone for MemorySet {
         for area in self.areas.iter() {
             let data = Vec::<u8>::from(unsafe{ area.as_slice()});
             unsafe{ 
-                page_table.with(||{ area.as_slice_mut().copy_from_slice(data.as_slice()) }
+                page_table.with(||{ 
+                    area.as_slice_mut().copy_from_slice(data.as_slice()) 
+                })
             }
         }
         MemorySet{

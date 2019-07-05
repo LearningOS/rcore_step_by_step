@@ -1,7 +1,7 @@
 use alloc::{ sync::Arc, boxed::Box, collections::BTreeMap, string::String};
 pub use crate::context::{ Context, TrapFrame};
 use super::{KernelStack, Tid, ExitCode, Pid};
-use crate::memory::{ current_root,);
+use crate::memory::{ current_root,};
 use crate::memory_set::{ MemorySet, handler::ByFrame, attr::MemoryAttr};
 use crate::fs::{ file_handle::FileHandle, ROOT_INODE};
 use rcore_fs::vfs::{ INode, };

@@ -1,9 +1,7 @@
 arch ?= riscv32-blog_os
-board ?= none
 mode ?= debug
 LOG  ?= debug
 graphic ?= off
-smp  ?= 4
 
 target := $(arch)
 kernel := target/$(target)/$(mode)/rcore32
@@ -14,7 +12,6 @@ usr_path := usr
 
 ### export environments ###
 export ARCH = $(arch)
-export SMP = $(smp)
 export SFSIMG = $(usr_path)/rcore32.img
 # crate 'process' use this to set interrupt (MIE or SIE)
 
@@ -83,7 +80,7 @@ $(bin): kernel
 		--disable-fp-emulation \
 		--host=riscv64-unknown-elf \
 		--with-payload=$(abspath $(kernel)) && \
-	make -j32 && \
+	make -j7 && \
 	cp bbl $(abspath $@)
 
 kernel:
