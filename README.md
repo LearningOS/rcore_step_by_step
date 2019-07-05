@@ -1,4 +1,13 @@
 # rcore_step_by_step
+## 运行步骤  
+```sh
+cd rcore32/usr
+make build && make sfsimg
+cd ..
+make run
+```
+
+
 
 ## reference
  - https://os.phil-opp.com/
