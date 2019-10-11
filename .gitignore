@@ -1,0 +1,17 @@
+target
+os/target
+Cargo.lock
+*~
+*.org
+*.bak
+*.a
+*.rlib
+*.img
+*.o
+os/usr/build
+os/usr/rust/target
+.DS_Store
+_book
+node_modules
+.idea
+*.elf
