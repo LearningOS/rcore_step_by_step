@@ -5,7 +5,6 @@ use crate::context::TrapFrame;
 
 global_asm!(include_str!("trap/trap.asm"));
 
-#[no_mangle]
 pub fn init() {
     extern {
         fn __alltraps();
