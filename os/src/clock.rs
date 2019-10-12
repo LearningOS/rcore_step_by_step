@@ -3,10 +3,10 @@ use riscv::register::sie;
 use riscv::register::{ time, timeh };
 
 pub static mut TICK: usize = 0;
-static timebase: u64 = 100000;
+static TIMEBASE: u64 = 100000;
 
 pub fn init() {
-    unsafe{
+    unsafe {
         TICK = 0;
         sie::set_stimer();
     }
@@ -15,7 +15,7 @@ pub fn init() {
 }
 
 pub fn clock_set_next_event() {
-    set_timer(get_cycle() + timebase);
+    set_timer(get_cycle() + TIMEBASE);
 }
 
 fn get_cycle() -> u64 {
@@ -23,7 +23,7 @@ fn get_cycle() -> u64 {
         let hi = timeh::read();
         let lo = time::read();
         let tmp = timeh::read();
-        if (hi == tmp) {
+        if hi == tmp {
             return ((hi as u64) << 32) | (lo as u64);
         }
     }
