@@ -11,8 +11,8 @@ lazy_static! {
 }
 
 pub fn init(start: usize, lenth: usize) {
-    let mut bu = BUDDY_ALLOCATOR.lock()
-        .init(log2_down((MEMORY_END - MEMORY_OFFSET) / PAGE_SIZE) as u8);
+    BUDDY_ALLOCATOR.lock()
+        .init(log2_down((start + lenth - MEMORY_OFFSET) / PAGE_SIZE) as u8);
     alloc_frames((start - MEMORY_OFFSET - 1) / PAGE_SIZE + 1);
     println!("++++init frame allocator succeed!++++");
 }
@@ -22,13 +22,11 @@ pub fn alloc_frame() -> Option<Frame> {
 }
 
 pub fn alloc_frames(size: usize) -> Option<Frame> {
-    unsafe {
-        let ret = BUDDY_ALLOCATOR
-            .lock()
-            .alloc(size)
-            .map(|id| id * PAGE_SIZE + MEMORY_OFFSET);
-        ret.map(|addr| Frame::of_addr(PhysAddr::new(addr)))
-    }
+    let ret = BUDDY_ALLOCATOR
+        .lock()
+        .alloc(size)
+        .map(|id| id * PAGE_SIZE + MEMORY_OFFSET);
+    ret.map(|addr| Frame::of_addr(PhysAddr::new(addr)))
 }
 
 pub fn dealloc_frame(target: Frame) {
@@ -36,11 +34,9 @@ pub fn dealloc_frame(target: Frame) {
 }
 
 pub fn dealloc_frames(target: Frame, size: usize) {
-    unsafe {
-        BUDDY_ALLOCATOR
-            .lock()
-            .dealloc(target.start_address().as_usize() / PAGE_SIZE - MEMORY_OFFSET / PAGE_SIZE, size);
-    }
+    BUDDY_ALLOCATOR
+        .lock()
+        .dealloc(target.start_address().as_usize() / PAGE_SIZE - MEMORY_OFFSET / PAGE_SIZE, size);
 }
 
 pub fn test() {
