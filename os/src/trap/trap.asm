@@ -11,18 +11,17 @@
     # the kernel stack pointer. If we came from the kernel, sscratch
     # will contain 0, and we should continue on the current stack.
     csrrw sp, sscratch, sp
-    bnez sp, _save_context
-_restore_kernel_sp:
+    bnez sp, trap_from_user
+trap_from_kernel:
     csrr sp, sscratch
     # sscratch = previous-sp, sp = kernel-sp
-_save_context:
+trap_from_user:
     # provide room for trap frame
     addi sp, sp, -36*XLENB
     # save x registers except x2 (sp)
     STORE x1, 1
     STORE x3, 3
-    # tp(x4) = hartid. DON'T change.
-    # STORE x4, 4
+    STORE x4, 4
     STORE x5, 5
     STORE x6, 6
     STORE x7, 7
@@ -82,7 +81,7 @@ _to_kernel:
     # restore x registers except x2 (sp)
     LOAD x1, 1
     LOAD x3, 3
-    # LOAD x4, 4
+    LOAD x4, 4
     LOAD x5, 5
     LOAD x6, 6
     LOAD x7, 7
