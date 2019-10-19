@@ -10,7 +10,7 @@ pub fn init() {
         sstatus::set_sum(); // Allow user memory access
     }
     init_heap();
-    let memory_start = (end as usize) + PAGE_SIZE;
+    let memory_start = (end as usize - KERNEL_OFFSET + MEMORY_OFFSET) + PAGE_SIZE;
     let memory_size = MEMORY_END - memory_start;
     init_frame_allocator(memory_start, memory_size);
     test_frame_allocator();
