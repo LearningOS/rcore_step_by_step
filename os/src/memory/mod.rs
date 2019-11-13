@@ -2,8 +2,8 @@ pub mod frame_allocator;
 
 use crate::consts::*;
 use crate::HEAP_ALLOCATOR;
+use frame_allocator::{init as init_frame_allocator, test as test_frame_allocator};
 use riscv::register::sstatus;
-use frame_allocator::{ init as init_frame_allocator, test as test_frame_allocator };
 
 pub fn init() {
     unsafe {

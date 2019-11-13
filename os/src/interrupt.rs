@@ -1,12 +1,12 @@
-use riscv::register::{ stvec, sscratch, sstatus };
-use riscv::register::scause::{ Trap, Exception, Interrupt };
-use crate::clock::{ TICK, clock_set_next_event };
+use crate::clock::{clock_set_next_event, TICK};
 use crate::context::TrapFrame;
+use riscv::register::scause::{Exception, Interrupt, Trap};
+use riscv::register::{sscratch, sstatus, stvec};
 
 global_asm!(include_str!("trap/trap.asm"));
 
 pub fn init() {
-    extern {
+    extern "C" {
         fn __alltraps();
     }
     unsafe {
@@ -41,7 +41,7 @@ fn breakpoint() {
 fn super_timer() {
     // 响应当前时钟中断的同时，手动设置下一个时钟中断
     clock_set_next_event();
-    unsafe{
+    unsafe {
         TICK = TICK + 1;
         if TICK % 100 == 0 {
             println!("100 ticks!");

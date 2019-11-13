@@ -11,6 +11,5 @@ pub fn init() {
 pub extern "C" fn hello_thread(arg: usize) -> ! {
     println!("hello thread");
     println!("arg is {}", arg);
-    loop{
-    }
+    loop {}
 }

@@ -8,15 +8,15 @@
 #[macro_use]
 mod io;
 
-mod init;
-mod lang_items;
-mod sbi;
-mod context;
-mod interrupt;
 mod clock;
-mod memory;
 mod consts;
+mod context;
+mod init;
+mod interrupt;
+mod lang_items;
+mod memory;
 mod process;
+mod sbi;
 
 use buddy_system_allocator::LockedHeap;
 #[global_allocator]

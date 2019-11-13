@@ -1,6 +1,6 @@
 use crate::sbi::set_timer;
 use riscv::register::sie;
-use riscv::register::{ time, timeh };
+use riscv::register::{time, timeh};
 
 pub static mut TICK: usize = 0;
 static TIMEBASE: u64 = 100000;

@@ -1,18 +1,15 @@
 use core::mem::zeroed;
 use riscv::register::sstatus;
 
-use riscv::register::{
-    sstatus::Sstatus,
-    scause::Scause,
-};
+use riscv::register::{scause::Scause, sstatus::Sstatus};
 
 #[repr(C)]
 pub struct TrapFrame {
-    pub x: [usize; 32], // General registers
+    pub x: [usize; 32],   // General registers
     pub sstatus: Sstatus, // Supervisor Status Register
-    pub sepc: usize, // Supervisor exception program counter
-    pub stval: usize, // Supervisor trap value
-    pub scause: Scause, // Scause register: record the cause of exception/interrupt/trap
+    pub sepc: usize,      // Supervisor exception program counter
+    pub stval: usize,     // Supervisor trap value
+    pub scause: Scause,   // Scause register: record the cause of exception/interrupt/trap
 }
 
 impl TrapFrame {
@@ -23,7 +20,7 @@ impl TrapFrame {
 
 #[repr(C)]
 pub struct Context {
-    content_addr: usize // 上下文内容存储的位置
+    content_addr: usize, // 上下文内容存储的位置
 }
 
 impl Context {
@@ -35,7 +32,8 @@ impl Context {
         entry: extern "C" fn(usize) -> !,
         arg: usize,
         kstack_top: usize,
-        satp: usize ) -> Context {
+        satp: usize,
+    ) -> Context {
         ContextContent::new_kernel_thread(entry, arg, kstack_top, satp).push_at(kstack_top)
     }
 
@@ -48,13 +46,18 @@ impl Context {
 
 #[repr(C)]
 struct ContextContent {
-    ra: usize, // 返回地址
-    satp: usize, //　二级页表所在位置
+    ra: usize,      // 返回地址
+    satp: usize,    //　二级页表所在位置
     s: [usize; 12], // 被调用者保存的寄存器
 }
 
 impl ContextContent {
-    fn new_kernel_thread(entry: extern "C" fn(usize) -> !, arg: usize , kstack_top: usize, satp: usize) -> ContextContent {
+    fn new_kernel_thread(
+        entry: extern "C" fn(usize) -> !,
+        arg: usize,
+        kstack_top: usize,
+        satp: usize,
+    ) -> ContextContent {
         let mut content: ContextContent = unsafe { zeroed() };
         content.ra = entry as usize;
         content.satp = satp;
@@ -68,6 +71,8 @@ impl ContextContent {
     unsafe fn push_at(self, stack_top: usize) -> Context {
         let ptr = (stack_top as *mut ContextContent).sub(1);
         *ptr = self; // 拷贝 ContextContent
-        Context { content_addr: ptr as usize }
+        Context {
+            content_addr: ptr as usize,
+        }
     }
 }

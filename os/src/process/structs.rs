@@ -4,7 +4,7 @@ use alloc::alloc::{alloc, dealloc, Layout};
 use riscv::register::satp;
 
 pub struct Thread {
-    pub context: Context, // 线程相关的上下文
+    pub context: Context,    // 线程相关的上下文
     pub kstack: KernelStack, // 线程对应的内核栈
 }
 
@@ -29,10 +29,10 @@ impl Thread {
     }
 
     pub fn switch_to(&mut self, target: &mut Thread) {
-       unsafe {
-           self.context.switch(&mut target.context);
-       }
-   }
+        unsafe {
+            self.context.switch(&mut target.context);
+        }
+    }
 }
 
 pub struct KernelStack(usize);
@@ -41,9 +41,7 @@ const STACK_SIZE: usize = 0x8000;
 impl KernelStack {
     pub fn new() -> KernelStack {
         let bottom =
-            unsafe {
-                alloc(Layout::from_size_align(STACK_SIZE, STACK_SIZE).unwrap())
-            } as usize;
+            unsafe { alloc(Layout::from_size_align(STACK_SIZE, STACK_SIZE).unwrap()) } as usize;
         KernelStack(bottom)
     }
 
@@ -57,9 +55,8 @@ impl Drop for KernelStack {
         unsafe {
             dealloc(
                 self.0 as _,
-                Layout::from_size_align(STACK_SIZE, STACK_SIZE).unwrap()
+                Layout::from_size_align(STACK_SIZE, STACK_SIZE).unwrap(),
             );
         }
     }
 }
-
